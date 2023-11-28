@@ -32,4 +32,7 @@ opensafely/solid-organ-transplantation/2020-04-10
 opensafely/temporary-immunosuppression/2020-04-24
 opensafely/stroke-updated/2020-06-02
 opensafely/warfarin/2020-10-05
+
 user/alex-walker/post-viral-syndrome/70708fd6
+
+user/john-tazare/metformin-dmd/48e43356
