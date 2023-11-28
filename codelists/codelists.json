@@ -221,6 +221,12 @@
       "url": "https://www.opencodelists.org/codelist/opensafely/type-2-diabetes/48da3ef2/",
       "downloaded_at": "2023-11-28 15:20:29.313558Z",
       "sha": "21a0fd8e041c19abd876970d75b389b6904dc901"
+    },
+    "opensafely-prediabetes-snomed.csv": {
+      "id": "opensafely/prediabetes-snomed/6bdbb7dd",
+      "url": "https://www.opencodelists.org/codelist/opensafely/prediabetes-snomed/6bdbb7dd/",
+      "downloaded_at": "2023-11-28 16:44:43.127352Z",
+      "sha": "a52da34bd7178717df884211fca799db460a6b43"
     }
   }
 }

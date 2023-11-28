@@ -51,6 +51,7 @@ dataset.define_population(
 ) 
 
 
+
 # DEMOGRAPHIC variables
 ## age
 age = patients.age_on(index_date)
@@ -71,11 +72,11 @@ dataset.sex = patients.sex
 ## ethnicitiy
 dataset.ethnicity = (
     clinical_events.where(
-        clinical_events.ctv3_code.is_in(ethnicity_codelist)
+        clinical_events.ctv3_code.is_in(ethnicity_codes)
     )
     .sort_by(clinical_events.date)
     .last_for_patient()
-    .ctv3_code.to_category(ethnicity_codelist)
+    .ctv3_code.to_category(ethnicity_codes)
 )
 
 ## geographic and IMD data (https://www.gov.uk/government/statistics/english-indices-of-deprivation-2019)
@@ -111,7 +112,7 @@ dataset.region = registration.practice_nuts1_region_name
 # EXPOSURE variables
 dataset.first_metfin_date = (
     medications.where(
-        medications.dmd_code.is_in(metformin_codelist))
+        medications.dmd_code.is_in(metformin_codes))
         .where(medications.date.is_on_or_after(index_date))
         .sort_by(medications.date)
         .first_for_patient()
@@ -120,14 +121,23 @@ dataset.first_metfin_date = (
 
 dataset.num_metfin_prescriptions_within_1y = (
     medications.where(
-        medications.dmd_code.is_in(metformin_codelist))
+        medications.dmd_code.is_in(metformin_codes))
         .where(medications.date.is_on_or_between(index_date, "2023-01-01"))
         .count_for_patient()
 )
 
 dataset.t2dm = (
     clinical_events.where(
-        clinical_events.ctv3_code.is_in(t2dm_codelist))
+        clinical_events.ctv3_code.is_in(t2dm_codes))
+        #.where(clinical_events.date.is_on_or_after(pandemic_start))
+        .sort_by(clinical_events.date)
+        .first_for_patient()
+        .date
+)
+
+dataset.predm = (
+    clinical_events.where(
+        clinical_events.snomedct_code.is_in(prediabetes_codes))
         #.where(clinical_events.date.is_on_or_after(pandemic_start))
         .sort_by(clinical_events.date)
         .first_for_patient()
@@ -135,7 +145,7 @@ dataset.t2dm = (
 )
 
 dataset.num_asthma_inhaler_medications = medications.where(
-    medications.dmd_code.is_in(asthma_inhaler_codelist)
+    medications.dmd_code.is_in(asthma_inhaler_codes)
     & medications.date.is_on_or_between(
         index_date - days(30), index_date
     )

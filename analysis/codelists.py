@@ -8,7 +8,7 @@ from ehrql import (
 #from ehrql.tables.beta.core import clinical_events, patients
 
 ## demographics / ethnicitiy
-ethnicity_codelist = codelist_from_csv(
+ethnicity_codes = codelist_from_csv(
     "codelists/opensafely-ethnicity.csv",
     column="Code",
     category_column="Grouping_6",
@@ -28,13 +28,14 @@ post_viral_fatigue_codes = codelist_from_csv("codelists/user-alex-walker-post-vi
 
 ## diabetes / T2DM
 diabetes_codes = codelist_from_csv( "codelists/opensafely-diabetes.csv", column="CTV3ID")
-t2dm_codelist = codelist_from_csv("codelists/opensafely-type-2-diabetes.csv", column="CTV3ID")
+t2dm_codes = codelist_from_csv("codelists/opensafely-type-2-diabetes.csv", column="CTV3ID")
+prediabetes_codes = codelist_from_csv("codelists/opensafely-prediabetes-snomed.csv", column="code")
 
 ## metformin
-metformin_codelist = codelist_from_csv("codelists/user-john-tazare-metformin-dmd.csv",column="code")
+metformin_codes = codelist_from_csv("codelists/user-john-tazare-metformin-dmd.csv",column="code")
 
 ## other
-asthma_inhaler_codelist = codelist_from_csv("codelists/opensafely-asthma-inhaler-salbutamol-medication.csv",column="code")
+asthma_inhaler_codes = codelist_from_csv("codelists/opensafely-asthma-inhaler-salbutamol-medication.csv",column="code")
 
 #dataset = create_dataset()
 #dataset.define_population(patients.exists_for_patient())

@@ -36,3 +36,4 @@ opensafely/warfarin/2020-10-05
 user/alex-walker/post-viral-syndrome/70708fd6
 user/john-tazare/metformin-dmd/48e43356
 opensafely/type-2-diabetes/48da3ef2
+opensafely/prediabetes-snomed/6bdbb7dd
