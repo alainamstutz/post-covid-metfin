@@ -215,6 +215,12 @@
       "url": "https://www.opencodelists.org/codelist/user/john-tazare/metformin-dmd/48e43356/",
       "downloaded_at": "2023-11-28 11:59:15.805237Z",
       "sha": "368a1601e4bfbed05c48b624663d05cbeb1787c0"
+    },
+    "opensafely-type-2-diabetes.csv": {
+      "id": "opensafely/type-2-diabetes/48da3ef2",
+      "url": "https://www.opencodelists.org/codelist/opensafely/type-2-diabetes/48da3ef2/",
+      "downloaded_at": "2023-11-28 15:20:29.313558Z",
+      "sha": "21a0fd8e041c19abd876970d75b389b6904dc901"
     }
   }
 }

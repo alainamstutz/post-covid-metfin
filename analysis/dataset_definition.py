@@ -4,6 +4,7 @@ from ehrql import (
     create_dataset,
     days,
     when,
+    weeks
 )
 from ehrql.tables.beta.tpp import (
     addresses,
@@ -15,6 +16,8 @@ from ehrql.tables.beta.tpp import (
     ons_deaths,
 )
 
+# from cohortextractor import combine_codelists ## would be nice to 
+
 # define important dates
 pandemic_start = "2020-02-01"
 index_date = "2021-12-16" ### Omicron BA.1 dominance in UK
@@ -24,15 +27,7 @@ dataset = create_dataset()
 dataset.configure_dummy_data(population_size=50)
 
 # import codelists from codelists.py
-from codelists import (
-    long_covid_diagnostic_codes, 
-    long_covid_referral_codes, 
-    long_covid_assessment_codes, 
-    post_viral_fatigue_codes, 
-    asthma_inhaler_codelist,
-    ethnicity_codelist,
-    metformin_codelist
-)
+from codelists import *
 
 # population variables for dataset definition
 is_female_or_male = patients.sex.is_in(["female", "male"]) # only include f, m and no missing values
@@ -114,12 +109,29 @@ dataset.region = registration.practice_nuts1_region_name
 
 
 # EXPOSURE variables
-dataset.first_metfin = (
+dataset.first_metfin_date = (
+    medications.where(
+        medications.dmd_code.is_in(metformin_codelist))
+        .where(medications.date.is_on_or_after(index_date))
+        .sort_by(medications.date)
+        .first_for_patient()
+        .date
+)
+
+dataset.num_metfin_prescriptions_within_1y = (
     medications.where(
         medications.dmd_code.is_in(metformin_codelist))
         .where(medications.date.is_on_or_between(index_date, "2023-01-01"))
-        .medications.sort_by(medications.date)
+        .count_for_patient()
+)
+
+dataset.t2dm = (
+    clinical_events.where(
+        clinical_events.ctv3_code.is_in(t2dm_codelist))
+        #.where(clinical_events.date.is_on_or_after(pandemic_start))
+        .sort_by(clinical_events.date)
         .first_for_patient()
+        .date
 )
 
 dataset.num_asthma_inhaler_medications = medications.where(
@@ -129,26 +141,28 @@ dataset.num_asthma_inhaler_medications = medications.where(
     )
 ).count_for_patient()
 
+
+
 # OUTCOME variables
 ## long/post covid
 dataset.long_covid = (
     clinical_events.where(
         clinical_events.snomedct_code.is_in(long_covid_diagnostic_codes))
-        .where(clinical_events.date.is_on_or_after(pandemic_start))
+        .where(clinical_events.date.is_on_or_after(index_date))
         .sort_by(clinical_events.date)
         .first_for_patient()
         .exists_for_patient()
         |
     clinical_events.where(
         clinical_events.snomedct_code.is_in(long_covid_referral_codes))
-        .where(clinical_events.date.is_on_or_after(pandemic_start))
+        .where(clinical_events.date.is_on_or_after(index_date))
         .sort_by(clinical_events.date)
         .first_for_patient()
         .exists_for_patient()  
         |
     clinical_events.where(
         clinical_events.snomedct_code.is_in(long_covid_assessment_codes))
-        .where(clinical_events.date.is_on_or_after(pandemic_start))
+        .where(clinical_events.date.is_on_or_after(index_date))
         .sort_by(clinical_events.date)
         .first_for_patient()
         .exists_for_patient() 
@@ -156,7 +170,7 @@ dataset.long_covid = (
 dataset.post_viral_fatigue = (
     clinical_events.where(
         clinical_events.snomedct_code.is_in(post_viral_fatigue_codes))
-        .where(clinical_events.date.is_on_or_after(pandemic_start))
+        .where(clinical_events.date.is_on_or_after(index_date))
         .sort_by(clinical_events.date)
         .first_for_patient()
         .date
@@ -166,7 +180,7 @@ dataset.post_viral_fatigue = (
 dataset.date_of_first_admission = (
     hospital_admissions.where(
         hospital_admissions.admission_date.is_after(
-            pandemic_start
+            index_date
         )
     )
     .sort_by(hospital_admissions.admission_date)
