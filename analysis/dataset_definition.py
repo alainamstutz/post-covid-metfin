@@ -33,9 +33,10 @@ from datetime import date
 
 
 # DEFINE the index date
-pandemic_start = "2020-02-01"
-vaccine_peak = "2021-06-18"
-index_date = pandemic_start
+pandemic_start_date = "2020-02-01"
+vaccine_peak_date = "2021-06-18"
+medical_history_date = "1990-01-01" # e.g. to define DM diagnosis
+index_date = pandemic_start_date
 
 
 # START the dataset and set the dummy dataset size
@@ -120,6 +121,207 @@ dataset.region = registration.practice_nuts1_region_name
 #### "Generate variable to identify first date of confirmed COVID"
 ### How many were started on Metfin at/shortly after COVID-19 infection?
 
+
+## DIABETES -------------------
+
+### Type 1 Diabetes
+## Date of first ever recording
+# Primary care
+tmp_exp_date_t1dm_snomed = (
+    clinical_events.where(
+        clinical_events.ctv3_code.is_in(diabetes_type1_snomed_clinical))
+        .where(clinical_events.date.is_on_or_after(medical_history_date))
+        .sort_by(clinical_events.date)
+        .first_for_patient()
+        .date
+)
+# HES APC
+tmp_exp_date_t1dm_hes = (
+    hospital_admissions.where(
+        hospital_admissions.all_diagnoses.is_in(diabetes_type1_icd10))
+        .where(hospital_admissions.admission_date.is_on_or_after(medical_history_date))
+        .sort_by(hospital_admissions.admission_date)
+        .first_for_patient()
+        .admission_date
+)
+# Combined
+exp_date_t1dm = minimum_of(tmp_exp_date_t1dm_snomed, tmp_exp_date_t1dm_hes)
+
+## Count of number of records
+# Primary care
+tmp_exp_count_t1dm_snomed = (
+    clinical_events.where(
+        clinical_events.ctv3_code.is_in(diabetes_type1_snomed_clinical))
+        .where(clinical_events.date.is_on_or_after(medical_history_date))
+        ).count_for_patient()
+# HES APC
+tmp_exp_count_t1dm_hes = (
+    hospital_admissions.where(
+        hospital_admissions.all_diagnoses.is_in(diabetes_type1_icd10))
+        .where(hospital_admissions.admission_date.is_on_or_after(medical_history_date))
+        ).count_for_patient()
+
+
+### Type 2 Diabetes
+## Date of first ever recording
+# Primary care
+tmp_exp_date_t2dm_snomed = (
+    clinical_events.where(
+        clinical_events.ctv3_code.is_in(diabetes_type2_snomed_clinical))
+        .where(clinical_events.date.is_on_or_after(medical_history_date))
+        .sort_by(clinical_events.date)
+        .first_for_patient()
+        .date
+)
+# HES APC
+tmp_exp_date_t2dm_hes = (
+    hospital_admissions.where(
+        hospital_admissions.all_diagnoses.is_in(diabetes_type2_icd10))
+        .where(hospital_admissions.admission_date.is_on_or_after(medical_history_date))
+        .sort_by(hospital_admissions.admission_date)
+        .first_for_patient()
+        .admission_date
+)  
+# Combined
+exp_date_t2dm = minimum_of(tmp_exp_date_t2dm_snomed, tmp_exp_date_t2dm_hes)
+
+## Count of number of records
+# Primary care
+tmp_exp_count_t2dm_snomed = (
+    clinical_events.where(
+        clinical_events.ctv3_code.is_in(diabetes_type2_snomed_clinical))
+        .where(clinical_events.date.is_on_or_after(medical_history_date))
+        ).count_for_patient()
+# HES APC
+tmp_exp_count_t2dm_hes = (
+    hospital_admissions.where(
+        hospital_admissions.all_diagnoses.is_in(diabetes_type2_icd10))
+        .where(hospital_admissions.admission_date.is_on_or_after(medical_history_date))
+        ).count_for_patient()
+
+
+### Diabetes unspecified
+## Date of first ever recording
+# Primary care
+exp_date_otherdm = (
+    clinical_events.where(
+        clinical_events.ctv3_code.is_in(diabetes_other_snomed_clinical))
+        .where(clinical_events.date.is_on_or_after(medical_history_date))
+        .sort_by(clinical_events.date)
+        .first_for_patient()
+        .date
+)
+
+## Count of number of records
+# Primary care
+tmp_exp_count_otherdm = (
+    clinical_events.where(
+        clinical_events.ctv3_code.is_in(diabetes_other_snomed_clinical))
+        .where(clinical_events.date.is_on_or_after(medical_history_date))
+        ).count_for_patient()
+
+
+### Gestational diabetes
+## Date of first ever recording
+# Primary care
+exp_date_gestationaldm = (
+    clinical_events.where(
+        clinical_events.ctv3_code.is_in(diabetes_gestational_snomed_clinical))
+        .where(clinical_events.date.is_on_or_after(medical_history_date))
+        .sort_by(clinical_events.date)
+        .first_for_patient()
+        .date
+)
+
+
+### Diabetes diagnostic codes
+## Date of first ever recording
+# Primary care
+exp_date_poccdm = (
+    clinical_events.where(
+        clinical_events.ctv3_code.is_in(diabetes_diagnostic_snomed_clinical))
+        .where(clinical_events.date.is_on_or_after(medical_history_date))
+        .sort_by(clinical_events.date)
+        .first_for_patient()
+        .date
+)
+
+## Count of number of records
+# Primary care
+tmp_exp_count_poccdm_snomed = (
+    clinical_events.where(
+        clinical_events.ctv3_code.is_in(diabetes_diagnostic_snomed_clinical))
+        .where(clinical_events.date.is_on_or_after(medical_history_date))
+        ).count_for_patient()
+
+
+### Variables needed to define diabetes
+## Maximum HbA1c measure
+tmp_exp_num_max_hba1c_mmol_mol = (
+    clinical_events.where(
+        clinical_events.ctv3_code.is_in(hba1c_new_codes))
+        .where(clinical_events.date.is_on_or_after(medical_history_date))
+        .numeric_value.maximum_for_patient()
+)
+## Date of maximum latest HbA1c measure
+tmp_exp_num_max_hba1c_date = (
+    clinical_events.where(
+        clinical_events.ctv3_code.is_in(hba1c_new_codes))
+        .where(clinical_events.numeric_value == tmp_exp_num_max_hba1c_mmol_mol)
+        .sort_by(clinical_events.date)
+        .last_for_patient() # translates in cohortextractor to "on_most_recent_day_of_measurement=True"
+        .date
+)
+
+
+###  Diabetes drugs
+tmp_exp_date_insulin_snomed = (
+    medications.where(
+        medications.dmd_code.is_in(insulin_snomed_clinical)) # medications. only has dmd_code, no snomed. The codes look the same to me; dmd = snomed?
+        .where(medications.date.is_on_or_after(medical_history_date))
+        .sort_by(medications.date)
+        .first_for_patient() # translates in cohortextractor to "find_first_match_in_period=True"
+        .date
+)
+tmp_exp_date_antidiabetic_drugs_snomed = (
+    medications.where(
+        medications.dmd_code.is_in(antidiabetic_drugs_snomed_clinical))
+        .where(medications.date.is_on_or_after(medical_history_date))
+        .sort_by(medications.date)
+        .first_for_patient()
+        .date
+)   
+tmp_exp_date_nonmetform_drugs_snomed = ( ## why is this needed; tmp_exp_date_antidiabetic_drugs_snomed not sufficient?
+    medications.where(
+        medications.dmd_code.is_in(non_metformin_dmd))
+        .where(medications.date.is_on_or_after(medical_history_date))
+        .sort_by(medications.date)
+        .first_for_patient()
+        .date
+)      
+
+## Generate variable to identify earliest date any diabetes medication prescribed
+tmp_exp_date_diabetes_medication = minimum_of(
+    tmp_exp_date_insulin_snomed, 
+    tmp_exp_date_antidiabetic_drugs_snomed) # why excluding tmp_exp_date_nonmetform_drugs_snomed? Is tmp_exp_date_diabetes_medication even needed?
+
+## Generate variable to identify earliest date any diabetes diagnosis codes recorded
+dataset.tmp_exp_date_first_diabetes_diag = minimum_of(
+         exp_date_gestationaldm,
+         exp_date_otherdm,
+         exp_date_t1dm, 
+         exp_date_t2dm, 
+         exp_date_poccdm,
+         tmp_exp_date_diabetes_medication,
+         tmp_exp_date_nonmetform_drugs_snomed
+    )
+
+
+
+
+
+
+
 ## Metformin: https://www.opencodelists.org/codelist/user/john-tazare/metformin-dmd/48e43356/
 dataset.first_metfin_date = (
     medications.where(
@@ -137,157 +339,9 @@ dataset.num_metfin_prescriptions_within_1y = (
         .count_for_patient()
 )
 
-## DIABETES exposure -------------------
-
-### Type 1 Diabetes
-## Date of first ever recording
-# Primary care
-tmp_exp_date_t1dm_snomed = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_type1_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after("1990-01-01"))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date
-)
-# HES APC
-tmp_exp_date_t1dm_hes = (
-    hospital_admissions.where(
-        hospital_admissions.all_diagnoses.is_in(diabetes_type1_icd10))
-        .where(hospital_admissions.admission_date.is_on_or_after("1990-01-01"))
-        .sort_by(hospital_admissions.admission_date)
-        .first_for_patient()
-        .admission_date
-)
-# Combined
-exp_date_t1dm = minimum_of(tmp_exp_date_t1dm_snomed, tmp_exp_date_t1dm_hes)
-
-## Count of number of records
-# Primary care
-tmp_exp_count_t1dm_snomed = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_type1_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after("1990-01-01"))
-        ).count_for_patient()
-# HES APC
-tmp_exp_count_t1dm_hes = (
-    hospital_admissions.where(
-        hospital_admissions.all_diagnoses.is_in(diabetes_type1_icd10))
-        .where(hospital_admissions.admission_date.is_on_or_after("1990-01-01"))
-        ).count_for_patient()
-
-
-### Type 2 Diabetes
-## Date of first ever recording
-# Primary care
-tmp_exp_date_t2dm_snomed = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_type2_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after("1990-01-01"))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date
-)
-# HES APC
-tmp_exp_date_t2dm_hes = (
-    hospital_admissions.where(
-        hospital_admissions.all_diagnoses.is_in(diabetes_type2_icd10))
-        .where(hospital_admissions.admission_date.is_on_or_after("1990-01-01"))
-        .sort_by(hospital_admissions.admission_date)
-        .first_for_patient()
-        .admission_date
-)  
-# Combined
-exp_date_t2dm = minimum_of(tmp_exp_date_t2dm_snomed, tmp_exp_date_t2dm_hes)
-
-## Count of number of records
-# Primary care
-tmp_exp_count_t2dm_snomed = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_type2_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after("1990-01-01"))
-        ).count_for_patient()
-# HES APC
-tmp_exp_count_t2dm_hes = (
-    hospital_admissions.where(
-        hospital_admissions.all_diagnoses.is_in(diabetes_type2_icd10))
-        .where(hospital_admissions.admission_date.is_on_or_after("1990-01-01"))
-        ).count_for_patient()
-
-
-### Diabetes unspecified
-## Date of first ever recording
-# Primary care
-exp_date_otherdm = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_other_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after("1990-01-01"))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date
-)
-
-## Count of number of records
-# Primary care
-tmp_exp_count_otherdm = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_other_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after("1990-01-01"))
-        ).count_for_patient()
-
-
-### Gestational diabetes
-## Date of first ever recording
-# Primary care
-exp_date_gestationaldm = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_gestational_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after("1990-01-01"))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date
-)
-
-
-### Diabetes diagnostic codes
-## Date of first ever recording
-# Primary care
-exp_date_poccdm = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_diagnostic_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after("1990-01-01"))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date
-)
-
-## Count of number of records
-# Primary care
-tmp_exp_count_poccdm_snomed = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_diagnostic_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after("1990-01-01"))
-        ).count_for_patient()
-
-
-### Variables needed to define diabetes
-## Maximum latest HbA1c measure
-tmp_exp_num_max_hba1c_mmol_mol = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(hba1c_new_codes))
-        .where(clinical_events.date.is_on_or_after("1990-01-01"))
-        .numeric_value.maximum_for_patient()
-)
-## Date of maximum latest HbA1c measure
-tmp_exp_num_max_hba1c_date = tmp_exp_num_max_hba1c_mmol_mol.date
-
-
-
-
-
 ## SARS-CoV-2 pos / COVID-19 diagnosis --> take it from the long covid repo
 ## Date of positive SARS-COV-2 PCR antigen test / define a time period or just on_or_after?
-dataset.tmp_exp_date_covid19_confirmed_sgss = (
+tmp_exp_date_covid19_confirmed_sgss = (
     sgss_covid_all_tests.where(
         sgss_covid_all_tests.is_positive.is_not_null())
         .where(sgss_covid_all_tests.lab_report_date.is_on_or_after(index_date))
@@ -296,7 +350,7 @@ dataset.tmp_exp_date_covid19_confirmed_sgss = (
         .lab_report_date
 )
 ## First COVID-19 code (diagnosis, positive test or sequalae) in primary care
-dataset.tmp_exp_date_covid19_confirmed_snomed = (
+tmp_exp_date_covid19_confirmed_snomed = (
     clinical_events.where(
         clinical_events.ctv3_code.is_in(covid_primary_care_positive_test) | clinical_events.ctv3_code.is_in(covid_primary_care_code) | clinical_events.ctv3_code.is_in(covid_primary_care_sequalae))
         .where(clinical_events.date.is_on_or_after(index_date))

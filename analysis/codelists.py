@@ -43,15 +43,17 @@ diabetes_type1_icd10 = codelist_from_csv("codelists/opensafely-type-1-diabetes-s
 diabetes_type2_icd10 = codelist_from_csv("codelists/user-r_denholm-type-2-diabetes-secondary-care-bristol.csv",column="code")
 # Non-diagnostic diabetes codes
 diabetes_diagnostic_snomed_clinical = codelist_from_csv("codelists/user-hjforbes-nondiagnostic-diabetes-codes.csv",column="code")
-
 # HbA1c
-hba1c_new_codes = codelist_from_csv(["XaPbt", "Xaeze", "Xaezd"], column="code")
+hba1c_new_codes = codelist_from_csv("codelists/user-alainamstutz-hba1c-bristol.csv",column="code")
+# Antidiabetic drugs
+insulin_snomed_clinical = codelist_from_csv("codelists/opensafely-insulin-medication.csv",column="id")
+antidiabetic_drugs_snomed_clinical = codelist_from_csv("codelists/opensafely-antidiabetic-drugs.csv",column="id")
+non_metformin_dmd = codelist_from_csv("codelists/user-r_denholm-non-metformin-antidiabetic-drugs_bristol.csv",column="id")
 
 ## metformin
 metformin_codes = codelist_from_csv("codelists/user-john-tazare-metformin-dmd.csv",column="code")
 
-## other
-asthma_inhaler_codes = codelist_from_csv("codelists/opensafely-asthma-inhaler-salbutamol-medication.csv",column="code")
+
 
 #dataset = create_dataset()
 #dataset.define_population(patients.exists_for_patient())

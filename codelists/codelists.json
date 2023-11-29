@@ -251,6 +251,30 @@
       "url": "https://www.opencodelists.org/codelist/user/hjforbes/nondiagnostic-diabetes-codes/50f30a3b/",
       "downloaded_at": "2023-11-29 16:05:05.089517Z",
       "sha": "3b3bd24a816d04aeaaad93495d8c04772a12672f"
+    },
+    "opensafely-insulin-medication.csv": {
+      "id": "opensafely/insulin-medication/2020-04-26",
+      "url": "https://www.opencodelists.org/codelist/opensafely/insulin-medication/2020-04-26/",
+      "downloaded_at": "2023-11-29 20:22:37.025768Z",
+      "sha": "f9015d1cf063cb9cbe920d286529cbb94c5eab1b"
+    },
+    "opensafely-antidiabetic-drugs.csv": {
+      "id": "opensafely/antidiabetic-drugs/2020-07-16",
+      "url": "https://www.opencodelists.org/codelist/opensafely/antidiabetic-drugs/2020-07-16/",
+      "downloaded_at": "2023-11-29 20:22:37.423640Z",
+      "sha": "eb13d2918e35a4fc48ebeefef661cd3f0000ea52"
+    },
+    "user-r_denholm-non-metformin-antidiabetic-drugs_bristol.csv": {
+      "id": "user/r_denholm/non-metformin-antidiabetic-drugs_bristol/7207eb58",
+      "url": "https://www.opencodelists.org/codelist/user/r_denholm/non-metformin-antidiabetic-drugs_bristol/7207eb58/",
+      "downloaded_at": "2023-11-29 20:22:37.632465Z",
+      "sha": "d649dd26d98a577bcec6c836ed045f18555e8f5f"
+    },
+    "user-alainamstutz-hba1c-bristol.csv": {
+      "id": "user/alainamstutz/hba1c-bristol/7482c0c7",
+      "url": "https://www.opencodelists.org/codelist/user/alainamstutz/hba1c-bristol/7482c0c7/",
+      "downloaded_at": "2023-11-29 20:58:49.336387Z",
+      "sha": "cd4f06e53ae5eb4c8e16f8f0c0911a417aeba94a"
     }
   }
 }
