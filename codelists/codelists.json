@@ -48,12 +48,6 @@
       "downloaded_at": "2023-11-27 20:21:37.752255Z",
       "sha": "3d2f3998b71863a80b24d60f6f4282e14191ae13"
     },
-    "opensafely-diabetes.csv": {
-      "id": "opensafely/diabetes/2020-04-15",
-      "url": "https://www.opencodelists.org/codelist/opensafely/diabetes/2020-04-15/",
-      "downloaded_at": "2023-11-28 08:49:05.272265Z",
-      "sha": "f2781f0c9a0617b30996d681a798eedd152a09af"
-    },
     "opensafely-smoking-clear.csv": {
       "id": "opensafely/smoking-clear/2020-04-29",
       "url": "https://www.opencodelists.org/codelist/opensafely/smoking-clear/2020-04-29/",
@@ -216,17 +210,47 @@
       "downloaded_at": "2023-11-28 11:59:15.805237Z",
       "sha": "368a1601e4bfbed05c48b624663d05cbeb1787c0"
     },
-    "opensafely-type-2-diabetes.csv": {
-      "id": "opensafely/type-2-diabetes/48da3ef2",
-      "url": "https://www.opencodelists.org/codelist/opensafely/type-2-diabetes/48da3ef2/",
-      "downloaded_at": "2023-11-28 15:20:29.313558Z",
-      "sha": "21a0fd8e041c19abd876970d75b389b6904dc901"
+    "user-hjforbes-type-1-diabetes.csv": {
+      "id": "user/hjforbes/type-1-diabetes/674fbd7a",
+      "url": "https://www.opencodelists.org/codelist/user/hjforbes/type-1-diabetes/674fbd7a/",
+      "downloaded_at": "2023-11-29 15:27:18.540004Z",
+      "sha": "54a7772024e03c2129cb0c0c7ba77944eacd054a"
     },
-    "opensafely-prediabetes-snomed.csv": {
-      "id": "opensafely/prediabetes-snomed/6bdbb7dd",
-      "url": "https://www.opencodelists.org/codelist/opensafely/prediabetes-snomed/6bdbb7dd/",
-      "downloaded_at": "2023-11-28 16:44:43.127352Z",
-      "sha": "a52da34bd7178717df884211fca799db460a6b43"
+    "user-hjforbes-type-2-diabetes.csv": {
+      "id": "user/hjforbes/type-2-diabetes/3530d710",
+      "url": "https://www.opencodelists.org/codelist/user/hjforbes/type-2-diabetes/3530d710/",
+      "downloaded_at": "2023-11-29 15:27:18.653471Z",
+      "sha": "08421a5b1e92d07e47cbab2e12ecd71856cee98a"
+    },
+    "user-hjforbes-other-or-nonspecific-diabetes.csv": {
+      "id": "user/hjforbes/other-or-nonspecific-diabetes/0311f0a6",
+      "url": "https://www.opencodelists.org/codelist/user/hjforbes/other-or-nonspecific-diabetes/0311f0a6/",
+      "downloaded_at": "2023-11-29 15:27:18.766105Z",
+      "sha": "1461877af2c069504535089d669e830616629f67"
+    },
+    "user-hjforbes-gestational-diabetes.csv": {
+      "id": "user/hjforbes/gestational-diabetes/1ed423d1",
+      "url": "https://www.opencodelists.org/codelist/user/hjforbes/gestational-diabetes/1ed423d1/",
+      "downloaded_at": "2023-11-29 15:27:18.882909Z",
+      "sha": "4298a4affa79a1f04130cf5c630892a25819292c"
+    },
+    "opensafely-type-1-diabetes-secondary-care.csv": {
+      "id": "opensafely/type-1-diabetes-secondary-care/2020-09-27",
+      "url": "https://www.opencodelists.org/codelist/opensafely/type-1-diabetes-secondary-care/2020-09-27/",
+      "downloaded_at": "2023-11-29 15:46:15.891226Z",
+      "sha": "e51303ce0e7eb6ac9e0d1763bd23e49b0f273429"
+    },
+    "user-r_denholm-type-2-diabetes-secondary-care-bristol.csv": {
+      "id": "user/r_denholm/type-2-diabetes-secondary-care-bristol/0b7f6cd4",
+      "url": "https://www.opencodelists.org/codelist/user/r_denholm/type-2-diabetes-secondary-care-bristol/0b7f6cd4/",
+      "downloaded_at": "2023-11-29 15:46:16.029073Z",
+      "sha": "64dfc55f964cd811b59f0d142d661e1ad1b26f29"
+    },
+    "user-hjforbes-nondiagnostic-diabetes-codes.csv": {
+      "id": "user/hjforbes/nondiagnostic-diabetes-codes/50f30a3b",
+      "url": "https://www.opencodelists.org/codelist/user/hjforbes/nondiagnostic-diabetes-codes/50f30a3b/",
+      "downloaded_at": "2023-11-29 16:05:05.089517Z",
+      "sha": "3b3bd24a816d04aeaaad93495d8c04772a12672f"
     }
   }
 }
