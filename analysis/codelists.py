@@ -44,6 +44,8 @@ diabetes_type2_icd10 = codelist_from_csv("codelists/user-r_denholm-type-2-diabet
 # Non-diagnostic diabetes codes
 diabetes_diagnostic_snomed_clinical = codelist_from_csv("codelists/user-hjforbes-nondiagnostic-diabetes-codes.csv",column="code")
 
+# HbA1c
+hba1c_new_codes = codelist_from_csv(["XaPbt", "Xaeze", "Xaezd"], column="code")
 
 ## metformin
 metformin_codes = codelist_from_csv("codelists/user-john-tazare-metformin-dmd.csv",column="code")

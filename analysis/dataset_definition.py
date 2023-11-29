@@ -271,11 +271,19 @@ tmp_exp_count_poccdm_snomed = (
 
 
 ### Variables needed to define diabetes
-### Maximum latest HbA1c measure
+## Maximum latest HbA1c measure
+tmp_exp_num_max_hba1c_mmol_mol = (
+    clinical_events.where(
+        clinical_events.ctv3_code.is_in(hba1c_new_codes))
+        .where(clinical_events.date.is_on_or_after("1990-01-01"))
+        .numeric_value.maximum_for_patient()
+)
+## Date of maximum latest HbA1c measure
+tmp_exp_num_max_hba1c_date = tmp_exp_num_max_hba1c_mmol_mol.date
 
 
 
-        
+
 
 ## SARS-CoV-2 pos / COVID-19 diagnosis --> take it from the long covid repo
 ## Date of positive SARS-COV-2 PCR antigen test / define a time period or just on_or_after?
