@@ -7,12 +7,19 @@ from ehrql import (
 )
 #from ehrql.tables.beta.core import clinical_events, patients
 
-## demographics / ethnicitiy
+## demographics
+# ethnicity
 ethnicity_codes = codelist_from_csv(
     "codelists/opensafely-ethnicity.csv",
     column="Code",
     category_column="Grouping_6",
 )
+primis_covid19_vacc_update_ethnicity = codelist_from_csv(
+    "codelists/primis-covid19-vacc-uptake-eth2001.csv",
+    column="code",
+    category_column="grouping_6_id",
+)
+
 
 ## covid
 covid_codes = codelist_from_csv("codelists/opensafely-covid-identification.csv", column="icd10_code")
@@ -52,6 +59,9 @@ non_metformin_dmd = codelist_from_csv("codelists/user-r_denholm-non-metformin-an
 
 ## metformin
 metformin_codes = codelist_from_csv("codelists/user-john-tazare-metformin-dmd.csv",column="code")
+
+
+
 
 
 

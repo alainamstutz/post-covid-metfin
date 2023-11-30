@@ -275,6 +275,12 @@
       "url": "https://www.opencodelists.org/codelist/user/alainamstutz/hba1c-bristol/7482c0c7/",
       "downloaded_at": "2023-11-29 20:58:49.336387Z",
       "sha": "cd4f06e53ae5eb4c8e16f8f0c0911a417aeba94a"
+    },
+    "primis-covid19-vacc-uptake-eth2001.csv": {
+      "id": "primis-covid19-vacc-uptake/eth2001/v1",
+      "url": "https://www.opencodelists.org/codelist/primis-covid19-vacc-uptake/eth2001/v1/",
+      "downloaded_at": "2023-11-30 07:45:31.001078Z",
+      "sha": "2ff9aea91a05f41fe911a885eee50d2494247d58"
     }
   }
 }

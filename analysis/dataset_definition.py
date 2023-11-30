@@ -66,13 +66,13 @@ dataset.define_population(
 ) 
 
 
+# DEMOGRAPHIC variables ------------------------------------------------------
 
-# DEMOGRAPHIC variables
 ## age
-dataset.age = patients.age_on(index_date)
+dataset.cov_num_age = patients.age_on(index_date)
 
 ## sex
-dataset.sex = patients.sex
+dataset.sex = patients.sex.is_in(["female", "male"]) # only include f, m and no missing values
 
 ## ethnicitiy
 dataset.ethnicity = (
@@ -343,7 +343,7 @@ dataset.num_metfin_prescriptions_within_1y = (
 ## Date of positive SARS-COV-2 PCR antigen test / define a time period or just on_or_after?
 tmp_exp_date_covid19_confirmed_sgss = (
     sgss_covid_all_tests.where(
-        sgss_covid_all_tests.is_positive.is_not_null())
+        sgss_covid_all_tests.is_positive.is_not_null()) # double-check with https://docs.opensafely.org/ehrql/reference/schemas/beta.tpp/#sgss_covid_all_tests
         .where(sgss_covid_all_tests.lab_report_date.is_on_or_after(index_date))
         .sort_by(sgss_covid_all_tests.lab_report_date)
         .first_for_patient()

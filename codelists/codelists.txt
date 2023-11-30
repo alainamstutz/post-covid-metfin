@@ -51,3 +51,4 @@ opensafely/antidiabetic-drugs/2020-07-16
 user/r_denholm/non-metformin-antidiabetic-drugs_bristol/7207eb58
 
 user/alainamstutz/hba1c-bristol/7482c0c7
+primis-covid19-vacc-uptake/eth2001/v1
