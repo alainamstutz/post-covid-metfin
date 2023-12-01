@@ -20,6 +20,15 @@ primis_covid19_vacc_update_ethnicity = codelist_from_csv(
     category_column="grouping_6_id",
 )
 
+smoking_clear = codelist_from_csv("codelists/opensafely-smoking-clear.csv",
+    column="CTV3Code",
+    category_column="Category",
+)
+
+smoking_unclear = codelist_from_csv("codelists/opensafely-smoking-unclear.csv",
+    column="CTV3Code",
+    category_column="Category",
+)
 
 ## covid
 covid_codes = codelist_from_csv("codelists/opensafely-covid-identification.csv", column="icd10_code")

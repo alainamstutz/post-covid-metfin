@@ -24,7 +24,12 @@ from ehrql.tables.beta.tpp import (
     ons_deaths,
     sgss_covid_all_tests,
     hospital_admissions,
+    ethnicity_from_sus,
 )
+
+## Study definition helper
+import study_definition_helper_functions as helpers
+
 ## from codelists.py
 from codelists import *
 
@@ -74,7 +79,7 @@ dataset.cov_num_age = patients.age_on(index_date)
 ## sex
 dataset.sex = patients.sex.is_in(["female", "male"]) # only include f, m and no missing values
 
-## ethnicitiy
+## ethnicity
 dataset.ethnicity = (
     clinical_events.where(
         clinical_events.ctv3_code.is_in(ethnicity_codes)
@@ -84,33 +89,66 @@ dataset.ethnicity = (
     .ctv3_code.to_category(ethnicity_codes)
 )
 
-## geographic and IMD data (https://www.gov.uk/government/statistics/english-indices-of-deprivation-2019)
-address = addresses.for_patient_on(index_date)
-dataset.imd = address.imd_rounded
-dataset.imd_quintile = case(
-    when((address.imd_rounded >=0) & (address.imd_rounded < int(32844 * 1 / 5))).then("1 (most deprived)"),
-    when(address.imd_rounded < int(32844 * 2 / 5)).then("2"),
-    when(address.imd_rounded < int(32844 * 3 / 5)).then("3"),
-    when(address.imd_rounded < int(32844 * 4 / 5)).then("4"),
-    when(address.imd_rounded < int(32844 * 5 / 5)).then("5 (least deprived)"),
+
+
+
+
+## Deprivation
+imd_rounded = addresses.for_patient_on(index_date).imd_rounded
+dataset.cov_cat_deprivation = case(
+    when((imd_rounded >=0) & (imd_rounded < int(32844 * 1 / 10))).then("1 (most deprived)"), # double-check
+    when(imd_rounded < int(32844 * 2 / 10)).then("2"),
+    when(imd_rounded < int(32844 * 3 / 10)).then("3"),
+    when(imd_rounded < int(32844 * 4 / 10)).then("4"),
+    when(imd_rounded < int(32844 * 5 / 10)).then("5"),
+    when(imd_rounded < int(32844 * 6 / 10)).then("6"),
+    when(imd_rounded < int(32844 * 7 / 10)).then("7"),
+    when(imd_rounded < int(32844 * 8 / 10)).then("8"),
+    when(imd_rounded < int(32844 * 9 / 10)).then("9"),
+    when(imd_rounded < int(32844 * 10 / 10)).then("10 (least deprived)"),
     default="unknown"
 )
-dataset.rural_urban_classification = address.rural_urban_classification
-#1 - Urban major conurbation
-#2 - Urban minor conurbation
-#3 - Urban city and town
-#4 - Urban city and town in a sparse setting
-#5 - Rural town and fringe
-#6 - Rural town and fringe in a sparse setting
-#7 - Rural village and dispersed
-#8 - Rural village and dispersed in a sparse setting
-dataset.msoa_code = address.msoa_code
 
-## patient's practice data
-registration = practice_registrations.for_patient_on(index_date)
-dataset.practice = registration.practice_pseudo_id
-dataset.stp = registration.practice_stp
-dataset.region = registration.practice_nuts1_region_name
+## Region
+cov_cat_region = (
+    practice_registrations.for_patient_on(index_date)
+    .practice_nuts1_region_name
+)
+
+## Smoking status
+# cov_cat_smoking_status 
+tmp_most_recent_smoking_code = (
+    clinical_events.where(
+        clinical_events.ctv3_code.is_in(smoking_clear))
+        .where(clinical_events.date.is_on_or_before(index_date))
+        .sort_by(clinical_events.date)
+        .last_for_patient()
+        .ctv3_code
+)
+most_recent_smoking_code = tmp_most_recent_smoking_code.to_category(smoking_clear)
+
+tmp_ever_smoked = (
+    clinical_events.where(
+        clinical_events.ctv3_code.is_in(smoking_clear))
+        .where(clinical_events.date.is_on_or_before(index_date))
+        .ctv3_code
+)
+tmp_ever_smoked_cat = tmp_ever_smoked.to_category(smoking_clear)
+
+ever_smoked = case(
+    when(tmp_ever_smoked_cat == "S").then("S"),
+    when(tmp_ever_smoked_cat == "E").then("E"),
+)
+
+"""
+cov_cat_smoking_status = case(
+    when(most_recent_smoking_code == "S").then("S"),
+    when(most_recent_smoking_code == "E").then("E"),
+    when(most_recent_smoking_code == "N" & ever_smoked == "S").then("E"),
+    when(most_recent_smoking_code == "N" & (ever_smoked != "S" & ever_smoked != "E")).then("N"),
+)
+"""
+
 
 
 # EXPOSURE variables ------------------------------------------------------

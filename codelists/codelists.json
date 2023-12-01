@@ -48,12 +48,6 @@
       "downloaded_at": "2023-11-27 20:21:37.752255Z",
       "sha": "3d2f3998b71863a80b24d60f6f4282e14191ae13"
     },
-    "opensafely-smoking-clear.csv": {
-      "id": "opensafely/smoking-clear/2020-04-29",
-      "url": "https://www.opencodelists.org/codelist/opensafely/smoking-clear/2020-04-29/",
-      "downloaded_at": "2023-11-28 08:49:05.410250Z",
-      "sha": "0b5f3afe1db96dcce5141220e893a42ba2e5a8f7"
-    },
     "opensafely-direct-acting-oral-anticoagulants-doac.csv": {
       "id": "opensafely/direct-acting-oral-anticoagulants-doac/2020-10-05",
       "url": "https://www.opencodelists.org/codelist/opensafely/direct-acting-oral-anticoagulants-doac/2020-10-05/",
@@ -281,6 +275,18 @@
       "url": "https://www.opencodelists.org/codelist/primis-covid19-vacc-uptake/eth2001/v1/",
       "downloaded_at": "2023-11-30 07:45:31.001078Z",
       "sha": "2ff9aea91a05f41fe911a885eee50d2494247d58"
+    },
+    "opensafely-smoking-unclear.csv": {
+      "id": "opensafely/smoking-unclear/2020-04-29",
+      "url": "https://www.opencodelists.org/codelist/opensafely/smoking-unclear/2020-04-29/",
+      "downloaded_at": "2023-11-30 18:51:25.964437Z",
+      "sha": "d9dad3e9d9491f765863b2617114c521957b6db1"
+    },
+    "opensafely-smoking-clear.csv": {
+      "id": "opensafely/smoking-clear/2020-04-29",
+      "url": "https://www.opencodelists.org/codelist/opensafely/smoking-clear/2020-04-29/",
+      "downloaded_at": "2023-11-28 08:49:05.410250Z",
+      "sha": "0b5f3afe1db96dcce5141220e893a42ba2e5a8f7"
     }
   }
 }
