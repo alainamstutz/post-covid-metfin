@@ -30,12 +30,16 @@ smoking_unclear = codelist_from_csv("codelists/opensafely-smoking-unclear.csv",
     category_column="Category",
 )
 
+# Patients in long-stay nursing and residential care
+carehome = codelist_from_csv("codelists/primis-covid19-vacc-uptake-longres.csv",column="code")
+
+
 ## covid
 covid_codes = codelist_from_csv("codelists/opensafely-covid-identification.csv", column="icd10_code")
 
 covid_primary_care_positive_test = codelist_from_csv("codelists/opensafely-covid-identification-in-primary-care-probable-covid-positive-test.csv", column="CTV3ID")
 covid_primary_care_code = codelist_from_csv("codelists/opensafely-covid-identification-in-primary-care-probable-covid-clinical-code.csv", column="CTV3ID")
-covid_primary_care_sequalae = codelist_from_csv("codelists/opensafely-covid-identification-in-primary-care-probable-covid-sequelae.csv", column="CTV3ID")
+covid_primary_care_sequelae = codelist_from_csv("codelists/opensafely-covid-identification-in-primary-care-probable-covid-sequelae.csv", column="CTV3ID")
 
 ## long covid
 long_covid_diagnostic_codes = codelist_from_csv("codelists/opensafely-nice-managing-the-long-term-effects-of-covid-19.csv",column="code")
@@ -46,19 +50,20 @@ post_viral_fatigue_codes = codelist_from_csv("codelists/user-alex-walker-post-vi
 ## diabetes
 
 # T1DM
-diabetes_type1_snomed_clinical = codelist_from_csv("codelists/user-hjforbes-type-1-diabetes.csv",column="code")
+diabetes_type1_ctv3_clinical = codelist_from_csv("codelists/user-hjforbes-type-1-diabetes.csv",column="code")
 # T2DM
-diabetes_type2_snomed_clinical = codelist_from_csv("codelists/user-hjforbes-type-2-diabetes.csv",column="code")
+diabetes_type2_ctv3_clinical = codelist_from_csv("codelists/user-hjforbes-type-2-diabetes.csv",column="code")
 # Other or non-specific diabetes
-diabetes_other_snomed_clinical = codelist_from_csv("codelists/user-hjforbes-other-or-nonspecific-diabetes.csv",column="code")
+diabetes_other_ctv3_clinical = codelist_from_csv("codelists/user-hjforbes-other-or-nonspecific-diabetes.csv",column="code")
 # Gestational diabetes
-diabetes_gestational_snomed_clinical = codelist_from_csv("codelists/user-hjforbes-gestational-diabetes.csv",column="code")
+diabetes_gestational_ctv3_clinical = codelist_from_csv("codelists/user-hjforbes-gestational-diabetes.csv",column="code")
 # Type 1 diabetes secondary care
 diabetes_type1_icd10 = codelist_from_csv("codelists/opensafely-type-1-diabetes-secondary-care.csv",column="icd10_code")
 # Type 2 diabetes secondary care
 diabetes_type2_icd10 = codelist_from_csv("codelists/user-r_denholm-type-2-diabetes-secondary-care-bristol.csv",column="code")
 # Non-diagnostic diabetes codes
-diabetes_diagnostic_snomed_clinical = codelist_from_csv("codelists/user-hjforbes-nondiagnostic-diabetes-codes.csv",column="code")
+diabetes_diagnostic_ctv3_clinical = codelist_from_csv("codelists/user-hjforbes-nondiagnostic-diabetes-codes.csv",column="code")
+
 # HbA1c
 hba1c_new_codes = codelist_from_csv("codelists/user-alainamstutz-hba1c-bristol.csv",column="code")
 # Antidiabetic drugs

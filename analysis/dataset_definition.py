@@ -1,6 +1,5 @@
 # BASED on https://github.com/opensafely/post-covid-diabetes/blob/main/analysis/common_variables.py 
 
-
 # IMPORT
 
 ## ehrQL
@@ -25,6 +24,7 @@ from ehrql.tables.beta.tpp import (
     sgss_covid_all_tests,
     hospital_admissions,
     ethnicity_from_sus,
+    vaccinations, 
 )
 
 ## Study definition helper
@@ -37,7 +37,7 @@ from codelists import *
 from datetime import date
 
 
-# DEFINE the index date
+# DEFINE the DATES
 pandemic_start_date = "2020-02-01"
 vaccine_peak_date = "2021-06-18"
 medical_history_date = "1990-01-01" # e.g. to define DM diagnosis
@@ -49,18 +49,13 @@ dataset = create_dataset()
 dataset.configure_dummy_data(population_size=50)
 
 
+
+
 # population variables for dataset definition
 is_female_or_male = patients.sex.is_in(["female", "male"]) # only include f, m and no missing values
-was_adult = (patients.age_on(index_date) >= 18) & (
-    patients.age_on(index_date) <= 110
-) # only include adults and no missing values
-was_alive = (
-    patients.date_of_death.is_after(index_date)
-    | patients.date_of_death.is_null()
-) # only include if alive 
-was_registered = practice_registrations.for_patient_on(
-    index_date
-).exists_for_patient() # only include if registered on index date
+was_adult = (patients.age_on(index_date) >= 18) & (patients.age_on(index_date) <= 110) # only include adults and no missing values
+was_alive = (patients.date_of_death.is_after(index_date) | patients.date_of_death.is_null()) # only include if alive 
+was_registered = practice_registrations.for_patient_on(index_date).exists_for_patient() # only include if registered on index date
 
 # define/create dataset
 dataset.define_population(
@@ -71,27 +66,116 @@ dataset.define_population(
 ) 
 
 
-# DEMOGRAPHIC variables ------------------------------------------------------
+
+
+# FUNCTIONS -----------------------------------------------------------------
+
+## primary care 
+## BEFORE INDEX DATE
+# Any events occurring BEFORE INDEX DATE (from codelist / clinical_events) 
+prior_events = clinical_events.where(clinical_events.date.is_on_or_before(index_date))
+def has_prior_event_snomed(codelist, where=True):
+    return (
+        prior_events.where(where)
+        .where(prior_events.snomedct_code.is_in(codelist))
+        .exists_for_patient()
+    )
+def has_prior_event_ctv3(codelist, where=True):
+    return (
+        prior_events.where(where)
+        .where(prior_events.ctv3_code.is_in(codelist))
+        .exists_for_patient()
+    )
+# Most recent event occurring BEFORE INDEX DATE (from codelist / clinical_events)
+def prior_event_date_ctv3(codelist, where=True):
+    return (
+        prior_events.where(where)
+        .where(prior_events.ctv3_code.is_in(codelist))
+        .sort_by(prior_events.date)
+        .last_for_patient()
+        .date
+    )
+# Count prior events occurring BEFORE INDEX DATE (from codelist / clinical_events) 
+def prior_events_count_ctv3(codelist, where=True):
+    return (
+        prior_events.where(where)
+        .where(prior_events.ctv3_code.is_in(codelist))
+        .count_for_patient()
+    )
+## ON or AFTER MEDICAL HISTORY DATE
+# First date of event occurring ON or AFTER MEDICAL HISTORY DATE (from codelist / clinical_events)
+after_events = clinical_events.where(clinical_events.date.is_on_or_after(medical_history_date))
+def after_event_date_ctv3(codelist, where=True):
+    return (
+        after_events.where(where)
+        .where(after_events.ctv3_code.is_in(codelist))
+        .sort_by(after_events.date)
+        .first_for_patient()
+        .date
+    )
+# Count all events occurring ON or AFTER MEDICAL HISTORY DATE (from codelist / clinical_events) 
+def after_events_count_ctv3(codelist, where=True):
+    return (
+        after_events.where(where)
+        .where(after_events.ctv3_code.is_in(codelist))
+        .count_for_patient()
+    )
+
+### admissions
+## BEFORE INDEX DATE
+# Most recent admission occurring BEFORE INDEX DATE (from codelist / hospital_admissions)
+prior_admissions = hospital_admissions.where(hospital_admissions.admission_date.is_on_or_before(index_date))
+def prior_admission_date(codelist, where=True):
+    return (
+        prior_admissions.where(where)
+        .where(prior_admissions.all_diagnoses.is_in(codelist))
+        .sort_by(prior_admissions.admission_date)
+        .last_for_patient()
+        .admission_date
+    )
+# Count prior admission occurring BEFORE INDEX DATE (from codelist / hospital_admissions) 
+def prior_admissions_count(codelist, where=True):
+    return (
+        prior_admissions.where(where)
+        .where(prior_admissions.all_diagnoses.is_in(codelist))
+        .count_for_patient()
+    )
+## ON or AFTER MEDICAL HISTORY DATE
+# First date of admission for diagnosis from codelist occurring ON or AFTER MEDICAL HISTORY DATE (from codelist / hospital_admissions)
+after_admissions = hospital_admissions.where(hospital_admissions.admission_date.is_on_or_after(medical_history_date))
+def after_admission_date(codelist, where=True):
+    return (
+        after_admissions.where(where)
+        .where(after_admissions.all_diagnoses.is_in(codelist))
+        .sort_by(after_admissions.admission_date)
+        .first_for_patient()
+        .admission_date
+    )
+# Count all admissions for diagnosis (from codelist) occurring ON or AFTER MEDICAL HISTORY DATE (from codelist / hospital_admissions)
+def after_admissions_count(codelist, where=True):
+    return (
+        after_admissions.where(where)
+        .where(after_admissions.all_diagnoses.is_in(codelist))
+        .count_for_patient()
+    )
+
+# DEMOGRAPHIC variables / COVARIATES ------------------------------------------------------
 
 ## age
 dataset.cov_num_age = patients.age_on(index_date)
 
 ## sex
-dataset.sex = patients.sex.is_in(["female", "male"]) # only include f, m and no missing values
+dataset.sex = patients.sex # only include f, m and no missing values?
+#dataset.sex = patients.sex.is_in(["female", "male"]) # only include f, m and no missing values. Depends on population variable definition above
 
-## ethnicity
-dataset.ethnicity = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(ethnicity_codes)
-    )
+## ethnicity in 6 categories based on codelists/opensafely-ethnicity.csv only. https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/codelists.py  
+dataset.cov_cat_ethnicity = (
+    clinical_events.where(clinical_events.ctv3_code.is_in(ethnicity_codes))
     .sort_by(clinical_events.date)
     .last_for_patient()
     .ctv3_code.to_category(ethnicity_codes)
 )
-
-
-
-
+### ethnicity_from_sus? primis_covid19_vacc_update_ethnicity? see post-covid-diabetes repo
 
 ## Deprivation
 imd_rounded = addresses.for_patient_on(index_date).imd_rounded
@@ -126,7 +210,6 @@ tmp_most_recent_smoking_code = (
         .ctv3_code
 )
 most_recent_smoking_code = tmp_most_recent_smoking_code.to_category(smoking_clear)
-
 tmp_ever_smoked = (
     clinical_events.where(
         clinical_events.ctv3_code.is_in(smoking_clear))
@@ -134,12 +217,10 @@ tmp_ever_smoked = (
         .ctv3_code
 )
 tmp_ever_smoked_cat = tmp_ever_smoked.to_category(smoking_clear)
-
 ever_smoked = case(
     when(tmp_ever_smoked_cat == "S").then("S"),
     when(tmp_ever_smoked_cat == "E").then("E"),
 )
-
 """
 cov_cat_smoking_status = case(
     when(most_recent_smoking_code == "S").then("S"),
@@ -148,6 +229,26 @@ cov_cat_smoking_status = case(
     when(most_recent_smoking_code == "N" & (ever_smoked != "S" & ever_smoked != "E")).then("N"),
 )
 """
+
+## Care home status
+# Flag care home based on primis (patients in long-stay nursing and residential care)
+care_home_code = has_prior_event_snomed(carehome)
+#dataset.care_home_code = care_home_code
+# Flag care home based on TPP
+care_home_tpp = addresses.for_patient_on(index_date).care_home_is_potential_match 
+#dataset.care_home_tpp = care_home_tpp
+dataset.cov_bin_carehome_status = case(
+    when(care_home_code).then(True),
+    when(care_home_tpp).then(True),
+    default=False
+)
+
+# Vaccination history?
+covid_vaccinations = (
+  vaccinations
+  .where(vaccinations.target_disease.is_in(["SARS-2 CORONAVIRUS"]))
+  .sort_by(vaccinations.date)
+)
 
 
 
@@ -160,140 +261,62 @@ cov_cat_smoking_status = case(
 ### How many were started on Metfin at/shortly after COVID-19 infection?
 
 
-## DIABETES -------------------
+#### DIABETES ---------
 
 ### Type 1 Diabetes
 ## Date of first ever recording
 # Primary care
-tmp_exp_date_t1dm_snomed = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_type1_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after(medical_history_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date
-)
+tmp_exp_date_t1dm_ctv3 = prior_event_date_ctv3(diabetes_type1_ctv3_clinical)
 # HES APC
-tmp_exp_date_t1dm_hes = (
-    hospital_admissions.where(
-        hospital_admissions.all_diagnoses.is_in(diabetes_type1_icd10))
-        .where(hospital_admissions.admission_date.is_on_or_after(medical_history_date))
-        .sort_by(hospital_admissions.admission_date)
-        .first_for_patient()
-        .admission_date
-)
+tmp_exp_date_t1dm_hes = prior_admission_date(diabetes_type1_icd10)
 # Combined
-exp_date_t1dm = minimum_of(tmp_exp_date_t1dm_snomed, tmp_exp_date_t1dm_hes)
+exp_date_t1dm = minimum_of(tmp_exp_date_t1dm_ctv3, tmp_exp_date_t1dm_hes)
 
 ## Count of number of records
 # Primary care
-tmp_exp_count_t1dm_snomed = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_type1_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after(medical_history_date))
-        ).count_for_patient()
+tmp_exp_count_t1dm_snomed = prior_events_count_ctv3(diabetes_type1_ctv3_clinical) # change name to ctv3
 # HES APC
-tmp_exp_count_t1dm_hes = (
-    hospital_admissions.where(
-        hospital_admissions.all_diagnoses.is_in(diabetes_type1_icd10))
-        .where(hospital_admissions.admission_date.is_on_or_after(medical_history_date))
-        ).count_for_patient()
-
+tmp_exp_count_t1dm_hes = prior_admissions_count(diabetes_type1_icd10)
 
 ### Type 2 Diabetes
 ## Date of first ever recording
 # Primary care
-tmp_exp_date_t2dm_snomed = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_type2_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after(medical_history_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date
-)
+tmp_exp_date_t2dm_ctv3 = prior_event_date_ctv3(diabetes_type2_ctv3_clinical)
 # HES APC
-tmp_exp_date_t2dm_hes = (
-    hospital_admissions.where(
-        hospital_admissions.all_diagnoses.is_in(diabetes_type2_icd10))
-        .where(hospital_admissions.admission_date.is_on_or_after(medical_history_date))
-        .sort_by(hospital_admissions.admission_date)
-        .first_for_patient()
-        .admission_date
-)  
+tmp_exp_date_t2dm_hes = prior_admission_date(diabetes_type2_icd10)
 # Combined
-exp_date_t2dm = minimum_of(tmp_exp_date_t2dm_snomed, tmp_exp_date_t2dm_hes)
+exp_date_t2dm = minimum_of(tmp_exp_date_t2dm_ctv3, tmp_exp_date_t2dm_hes)
 
 ## Count of number of records
 # Primary care
-tmp_exp_count_t2dm_snomed = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_type2_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after(medical_history_date))
-        ).count_for_patient()
+tmp_exp_count_t2dm_snomed = prior_events_count_ctv3(diabetes_type2_ctv3_clinical) # change name to ctv3
 # HES APC
-tmp_exp_count_t2dm_hes = (
-    hospital_admissions.where(
-        hospital_admissions.all_diagnoses.is_in(diabetes_type2_icd10))
-        .where(hospital_admissions.admission_date.is_on_or_after(medical_history_date))
-        ).count_for_patient()
-
+tmp_exp_count_t2dm_hes = prior_admissions_count(diabetes_type2_icd10)
 
 ### Diabetes unspecified
 ## Date of first ever recording
 # Primary care
-exp_date_otherdm = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_other_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after(medical_history_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date
-)
+exp_date_otherdm = prior_event_date_ctv3(diabetes_other_ctv3_clinical)
 
 ## Count of number of records
 # Primary care
-tmp_exp_count_otherdm = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_other_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after(medical_history_date))
-        ).count_for_patient()
-
+tmp_exp_count_otherdm = prior_events_count_ctv3(diabetes_other_ctv3_clinical) # change name to ctv3
 
 ### Gestational diabetes
 ## Date of first ever recording
 # Primary care
-exp_date_gestationaldm = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_gestational_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after(medical_history_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date
-)
-
+exp_date_gestationaldm = prior_event_date_ctv3(diabetes_gestational_ctv3_clinical)
 
 ### Diabetes diagnostic codes
 ## Date of first ever recording
 # Primary care
-exp_date_poccdm = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_diagnostic_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after(medical_history_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date
-)
+exp_date_poccdm = prior_event_date_ctv3(diabetes_diagnostic_ctv3_clinical)
 
 ## Count of number of records
 # Primary care
-tmp_exp_count_poccdm_snomed = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(diabetes_diagnostic_snomed_clinical))
-        .where(clinical_events.date.is_on_or_after(medical_history_date))
-        ).count_for_patient()
+tmp_exp_count_poccdm_snomed = prior_events_count_ctv3(diabetes_diagnostic_ctv3_clinical) # change name to ctv3
 
-
-### Variables needed to define diabetes
+### Other variables needed to define diabetes
 ## Maximum HbA1c measure
 tmp_exp_num_max_hba1c_mmol_mol = (
     clinical_events.where(
@@ -310,9 +333,7 @@ tmp_exp_num_max_hba1c_date = (
         .last_for_patient() # translates in cohortextractor to "on_most_recent_day_of_measurement=True"
         .date
 )
-
-
-###  Diabetes drugs
+##  Diabetes drugs
 tmp_exp_date_insulin_snomed = (
     medications.where(
         medications.dmd_code.is_in(insulin_snomed_clinical)) # medications. only has dmd_code, no snomed. The codes look the same to me; dmd = snomed?
@@ -352,15 +373,11 @@ dataset.tmp_exp_date_first_diabetes_diag = minimum_of(
          exp_date_poccdm,
          tmp_exp_date_diabetes_medication,
          tmp_exp_date_nonmetform_drugs_snomed
-    )
+)
 
+#### METFORMIN ---------
 
-
-
-
-
-
-## Metformin: https://www.opencodelists.org/codelist/user/john-tazare/metformin-dmd/48e43356/
+# https://www.opencodelists.org/codelist/user/john-tazare/metformin-dmd/48e43356/
 dataset.first_metfin_date = (
     medications.where(
         medications.dmd_code.is_in(metformin_codes))
@@ -369,7 +386,6 @@ dataset.first_metfin_date = (
         .first_for_patient()
         .date
 )
-
 dataset.num_metfin_prescriptions_within_1y = (
     medications.where(
         medications.dmd_code.is_in(metformin_codes))
@@ -377,8 +393,9 @@ dataset.num_metfin_prescriptions_within_1y = (
         .count_for_patient()
 )
 
-## SARS-CoV-2 pos / COVID-19 diagnosis --> take it from the long covid repo
-## Date of positive SARS-COV-2 PCR antigen test / define a time period or just on_or_after?
+#### SARS-CoV-2 ---------
+
+# Date of positive SARS-COV-2 PCR antigen test
 tmp_exp_date_covid19_confirmed_sgss = (
     sgss_covid_all_tests.where(
         sgss_covid_all_tests.is_positive.is_not_null()) # double-check with https://docs.opensafely.org/ehrql/reference/schemas/beta.tpp/#sgss_covid_all_tests
@@ -387,18 +404,33 @@ tmp_exp_date_covid19_confirmed_sgss = (
         .first_for_patient()
         .lab_report_date
 )
-## First COVID-19 code (diagnosis, positive test or sequalae) in primary care
+
+
+
+
+# OUTCOME variables ------------------------------------------------------
+# All COVID-19 events
+primary_care_covid_events = clinical_events.where(
+    clinical_events.ctv3_code.is_in(
+        covid_primary_care_code
+        + covid_primary_care_positive_test
+        + covid_primary_care_sequelae
+    )
+)
+# First COVID-19 code (diagnosis, positive test or sequalae) in primary care
 tmp_exp_date_covid19_confirmed_snomed = (
-    clinical_events.where(
-        clinical_events.ctv3_code.is_in(covid_primary_care_positive_test) | clinical_events.ctv3_code.is_in(covid_primary_care_code) | clinical_events.ctv3_code.is_in(covid_primary_care_sequalae))
-        .where(clinical_events.date.is_on_or_after(index_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date
+    primary_care_covid_events.where(clinical_events.date.is_on_or_after(index_date))
+    .sort_by(clinical_events.date)
+    .first_for_patient()
+    .date
 )
 ## Start date of episode with confirmed diagnosis in any position
 
-# OUTCOME variables
+
+
+
+
+
 ## long/post covid: https://github.com/opensafely/long-covid/blob/main/analysis/codelists.py
 dataset.long_covid = (
     clinical_events.where(

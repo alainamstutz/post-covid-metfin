@@ -287,6 +287,12 @@
       "url": "https://www.opencodelists.org/codelist/opensafely/smoking-clear/2020-04-29/",
       "downloaded_at": "2023-11-28 08:49:05.410250Z",
       "sha": "0b5f3afe1db96dcce5141220e893a42ba2e5a8f7"
+    },
+    "primis-covid19-vacc-uptake-longres.csv": {
+      "id": "primis-covid19-vacc-uptake/longres/v1",
+      "url": "https://www.opencodelists.org/codelist/primis-covid19-vacc-uptake/longres/v1/",
+      "downloaded_at": "2023-12-01 19:14:56.636544Z",
+      "sha": "4d4c94b9c6aa267c6a60657150bbc5ec7d2d7625"
     }
   }
 }
