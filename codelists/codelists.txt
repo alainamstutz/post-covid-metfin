@@ -56,3 +56,5 @@ opensafely/smoking-unclear/2020-04-29
 opensafely/smoking-clear/2020-04-29
 
 primis-covid19-vacc-uptake/longres/v1
+
+user/RochelleKnight/confirmed-hospitalised-covid-19/1f0d2526

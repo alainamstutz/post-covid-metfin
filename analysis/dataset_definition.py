@@ -395,7 +395,7 @@ dataset.num_metfin_prescriptions_within_1y = (
 
 #### SARS-CoV-2 ---------
 
-# Date of positive SARS-COV-2 PCR antigen test
+# Date of first positive SARS-COV-2 PCR antigen test after index date. Before index date?
 tmp_exp_date_covid19_confirmed_sgss = (
     sgss_covid_all_tests.where(
         sgss_covid_all_tests.is_positive.is_not_null()) # double-check with https://docs.opensafely.org/ehrql/reference/schemas/beta.tpp/#sgss_covid_all_tests
@@ -406,10 +406,8 @@ tmp_exp_date_covid19_confirmed_sgss = (
 )
 
 
-
-
 # OUTCOME variables ------------------------------------------------------
-# All COVID-19 events
+# All COVID-19 events primary care
 primary_care_covid_events = clinical_events.where(
     clinical_events.ctv3_code.is_in(
         covid_primary_care_code
@@ -417,16 +415,42 @@ primary_care_covid_events = clinical_events.where(
         + covid_primary_care_sequelae
     )
 )
-# First COVID-19 code (diagnosis, positive test or sequalae) in primary care
+# First COVID-19 code (diagnosis, positive test or sequalae) in primary care after index date
 tmp_exp_date_covid19_confirmed_snomed = (
     primary_care_covid_events.where(clinical_events.date.is_on_or_after(index_date))
     .sort_by(clinical_events.date)
     .first_for_patient()
     .date
 )
-## Start date of episode with confirmed diagnosis in any position
+
+# Start date of first hospital episode with confirmed diagnosis in any position, after index date
+tmp_exp_date_covid19_confirmed_hes = (
+    hospital_admissions.where(hospital_admissions.all_diagnoses.is_in(covid_codes))
+    .where(hospital_admissions.admission_date.is_on_or_after(index_date))
+    .sort_by(hospital_admissions.admission_date)
+    .first_for_patient()
+    .admission_date
+)
 
 
+# all-cause death ## death table: I need to search in all cause of death or only underlying_cause_of_death ?
+dataset.death_date = ons_deaths.date
+
+"""
+import operator
+from functools import reduce
+def any_of(conditions):
+    return reduce(operator.or_, conditions)
+
+# covid-related death (stated anywhere on any of the 15 death certificate options)
+def cause_of_death_matches(codelist):
+    conditions = [
+        getattr(ons_deaths, column_name).is_in(codelist)
+        for column_name in (["underlying_cause_of_death"]+[f"cause_of_death_{i:02d}" for i in range(1, 16)])
+    ]
+    return any_of(conditions)
+dataset.tmp_exp_date_covid19_confirmed_death = cause_of_death_matches(covid_codes) # https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/codelists.py uses a different codelist: codelists/opensafely-covid-identification.csv
+"""
 
 
 
@@ -463,19 +487,4 @@ dataset.post_viral_fatigue = (
         .date
 )
 
-## hospital admission
-dataset.date_of_first_admission = (
-    hospital_admissions.where(
-        hospital_admissions.admission_date.is_after(
-            index_date
-        )
-    )
-    .sort_by(hospital_admissions.admission_date)
-    .first_for_patient()
-    .admission_date
-)
 
-## death
-dataset.date_of_death_ons = ons_deaths.date
-dataset.place_of_death_ons = ons_deaths.place
-dataset.cause_of_death_ons = ons_deaths.cause_of_death_01

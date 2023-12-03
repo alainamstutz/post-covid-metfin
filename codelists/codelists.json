@@ -293,6 +293,12 @@
       "url": "https://www.opencodelists.org/codelist/primis-covid19-vacc-uptake/longres/v1/",
       "downloaded_at": "2023-12-01 19:14:56.636544Z",
       "sha": "4d4c94b9c6aa267c6a60657150bbc5ec7d2d7625"
+    },
+    "user-RochelleKnight-confirmed-hospitalised-covid-19.csv": {
+      "id": "user/RochelleKnight/confirmed-hospitalised-covid-19/1f0d2526",
+      "url": "https://www.opencodelists.org/codelist/user/RochelleKnight/confirmed-hospitalised-covid-19/1f0d2526/",
+      "downloaded_at": "2023-12-03 09:35:01.887881Z",
+      "sha": "7b472652a66eed89b0495a2cf43cf6e894451cb8"
     }
   }
 }
