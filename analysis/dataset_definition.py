@@ -36,7 +36,7 @@ from datetime import date
 
 
 # DEFINE the DATES
-pandemic_start_date = "2020-02-01"
+pandemic_start_date = "2020-01-01"
 vaccine_peak_date = "2021-06-18"
 medical_history_date = "1990-01-01" # e.g. to define DM diagnosis
 index_date = pandemic_start_date

@@ -299,6 +299,12 @@
       "url": "https://www.opencodelists.org/codelist/user/RochelleKnight/confirmed-hospitalised-covid-19/1f0d2526/",
       "downloaded_at": "2023-12-03 09:35:01.887881Z",
       "sha": "7b472652a66eed89b0495a2cf43cf6e894451cb8"
+    },
+    "opensafely-prediabetes-snomed.csv": {
+      "id": "opensafely/prediabetes-snomed/6bdbb7dd",
+      "url": "https://www.opencodelists.org/codelist/opensafely/prediabetes-snomed/6bdbb7dd/",
+      "downloaded_at": "2023-12-04 10:08:54.823361Z",
+      "sha": "a52da34bd7178717df884211fca799db460a6b43"
     }
   }
 }

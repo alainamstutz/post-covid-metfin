@@ -70,6 +70,9 @@ insulin_snomed_clinical = codelist_from_csv("codelists/opensafely-insulin-medica
 antidiabetic_drugs_snomed_clinical = codelist_from_csv("codelists/opensafely-antidiabetic-drugs.csv",column="id")
 non_metformin_dmd = codelist_from_csv("codelists/user-r_denholm-non-metformin-antidiabetic-drugs_bristol.csv",column="id")
 
+# Prediabetes
+prediabetes_snomed = codelist_from_csv("codelists/opensafely-prediabetes-snomed.csv",column="code")
+
 ## metformin
 metformin_codes = codelist_from_csv("codelists/user-john-tazare-metformin-dmd.csv",column="code")
 
