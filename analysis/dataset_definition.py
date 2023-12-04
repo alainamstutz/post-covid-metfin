@@ -1,5 +1,3 @@
-# BASED on https://github.com/opensafely/post-covid-diabetes/blob/main/analysis/common_variables.py 
-
 # IMPORT
 
 ## ehrQL
@@ -262,6 +260,7 @@ covid_vaccinations = (
 
 
 #### DIABETES ---------
+# BASED on https://github.com/opensafely/post-covid-diabetes/blob/main/analysis/common_variables.py 
 
 ### Type 1 Diabetes
 ## Date of first ever recording
@@ -395,19 +394,7 @@ dataset.num_metfin_prescriptions_within_1y = (
 
 #### SARS-CoV-2 ---------
 
-# Date of first positive SARS-COV-2 PCR antigen test after index date. Before index date?
-tmp_exp_date_covid19_confirmed_sgss = (
-    sgss_covid_all_tests.where(
-        sgss_covid_all_tests.is_positive.is_not_null()) # double-check with https://docs.opensafely.org/ehrql/reference/schemas/beta.tpp/#sgss_covid_all_tests
-        .where(sgss_covid_all_tests.lab_report_date.is_on_or_after(index_date))
-        .sort_by(sgss_covid_all_tests.lab_report_date)
-        .first_for_patient()
-        .lab_report_date
-)
-
-
-# OUTCOME variables ------------------------------------------------------
-# All COVID-19 events primary care
+# All COVID-19 events in primary care
 primary_care_covid_events = clinical_events.where(
     clinical_events.ctv3_code.is_in(
         covid_primary_care_code
@@ -423,18 +410,24 @@ tmp_exp_date_covid19_confirmed_snomed = (
     .date
 )
 
-# Start date of first hospital episode with confirmed diagnosis in any position, after index date
+# Date of first positive SARS-COV-2 PCR antigen test after index date. Around/before index date?
+tmp_exp_date_covid19_confirmed_sgss = (
+    sgss_covid_all_tests.where(
+        sgss_covid_all_tests.is_positive.is_not_null()) # double-check with https://docs.opensafely.org/ehrql/reference/schemas/beta.tpp/#sgss_covid_all_tests
+        .where(sgss_covid_all_tests.lab_report_date.is_on_or_after(index_date))
+        .sort_by(sgss_covid_all_tests.lab_report_date)
+        .first_for_patient()
+        .lab_report_date
+)
+
+# First covid-19 related hospital admission after index date
 tmp_exp_date_covid19_confirmed_hes = (
-    hospital_admissions.where(hospital_admissions.all_diagnoses.is_in(covid_codes))
+    hospital_admissions.where(hospital_admissions.all_diagnoses.is_in(covid_codes)) # https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/codelists.py uses a different codelist: codelists/opensafely-covid-identification.csv
     .where(hospital_admissions.admission_date.is_on_or_after(index_date))
     .sort_by(hospital_admissions.admission_date)
     .first_for_patient()
     .admission_date
 )
-
-
-# all-cause death ## death table: I need to search in all cause of death or only underlying_cause_of_death ?
-dataset.death_date = ons_deaths.date
 
 """
 import operator
@@ -442,6 +435,28 @@ from functools import reduce
 def any_of(conditions):
     return reduce(operator.or_, conditions)
 
+# query if emergency attentance diagnosis codes match a given codelist
+def emergency_diagnosis_matches(codelist):
+    conditions = [
+        getattr(emergency, column_name).is_in(codelist)
+        for column_name in [f"diagnosis_{i:02d}" for i in range(1, 25)]
+    ]
+    return emergency.where(any_of(conditions))
+
+# Emergency attendance for covid after index date?
+dataset.covidemergency_0_date = (
+    emergency_diagnosis_matches(covid_emergency)
+    .where(emergency.arrival_date.is_on_or_after(index_date))
+    .sort_by(emergency.arrival_date)
+    .last_for_patient()
+    .arrival_date
+)
+"""
+
+# all-cause death ## death table: I need to search in all cause of death or only underlying_cause_of_death ?
+dataset.death_date = ons_deaths.date
+
+"""
 # covid-related death (stated anywhere on any of the 15 death certificate options)
 def cause_of_death_matches(codelist):
     conditions = [
@@ -453,6 +468,7 @@ dataset.tmp_exp_date_covid19_confirmed_death = cause_of_death_matches(covid_code
 """
 
 
+# OUTCOME variables ------------------------------------------------------
 
 
 ## long/post covid: https://github.com/opensafely/long-covid/blob/main/analysis/codelists.py
