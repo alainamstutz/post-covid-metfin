@@ -62,10 +62,6 @@ ckd_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-ckd_snomed.c
 liver_disease_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-liver_disease_snomed.csv",column="code")
 liver_disease_icd10 = codelist_from_csv("codelists/user-elsie_horne-liver_disease_icd10.csv",column="code")
 
-# heart failure
-hf_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-hf_snomed.csv",column="code")
-hf_icd10 = codelist_from_csv("codelists/user-RochelleKnight-hf_icd10.csv",column="code")
-
 # smoking
 smoking_clear = codelist_from_csv("codelists/opensafely-smoking-clear.csv",
     column="CTV3Code",
@@ -121,7 +117,9 @@ other_dvt_icd10 = codelist_from_csv("codelists/user-elsie_horne-other_dvt_icd10.
 icvt_pregnancy_icd10 = codelist_from_csv("codelists/user-elsie_horne-icvt_pregnancy_icd10.csv",column="code")
 pe_icd10 = codelist_from_csv("codelists/user-RochelleKnight-pe_icd10.csv",column="code")
 
-
+# heart failure
+hf_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-hf_snomed.csv",column="code")
+hf_icd10 = codelist_from_csv("codelists/user-RochelleKnight-hf_icd10.csv",column="code")
 
 
 
