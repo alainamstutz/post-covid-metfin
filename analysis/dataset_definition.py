@@ -95,12 +95,11 @@ dataset.configure_dummy_data(population_size=50)
 
 dataset.baseline_date = baseline_date
 
-
-# population variables for dataset definition
+# population variables for dataset definition // eventually take out to show entire flow chart
 is_female_or_male = patients.sex.is_in(["female", "male"]) # only include f, m and no missing values
 was_adult = (patients.age_on(baseline_date) >= 18) & (patients.age_on(baseline_date) <= 110) # only include adults and no missing values
 was_alive = (patients.date_of_death.is_after(baseline_date) | patients.date_of_death.is_null()) # only include if alive 
-was_registered = practice_registrations.for_patient_on(baseline_date).exists_for_patient() # only include if registered on index date
+was_registered = practice_registrations.for_patient_on(baseline_date).exists_for_patient() # only include if registered on baseline date
 
 # define/create dataset
 dataset.define_population(
@@ -110,6 +109,10 @@ dataset.define_population(
     & was_registered
 ) 
 
+#######################################################################################
+# DEFINE QUALITY ASSURANCES
+#######################################################################################
+# to be done
 
 #######################################################################################
 # FUNCTIONS
@@ -574,11 +577,13 @@ dataset.cov_bin_vte = tmp_cov_bin_vte_snomed | tmp_cov_bin_vte_hes
 
 
 
-
 #######################################################################################
 # INTERVENTION/EXPOSURE variables
 #######################################################################################
-## METFORMIN
+
+# work in progress #
+
+# METFORMIN
 dataset.exp_date_first_metfin = (
     medications.where(
         medications.dmd_code.is_in(metformin_codes)) # https://www.opencodelists.org/codelist/user/john-tazare/metformin-dmd/48e43356/
@@ -600,6 +605,8 @@ dataset.exp_count_metfin_within1y = (
 #######################################################################################
 
 #### SARS-CoV-2 ---------
+
+""" has to be modified
 
 ## long/post covid: https://github.com/opensafely/long-covid/blob/main/analysis/codelists.py
 dataset.long_covid = (
@@ -671,7 +678,7 @@ tmp_exp_date_covid19_confirmed_hes = (
 
 # all-cause death ## death table: I need to search in all cause of death or only underlying_cause_of_death ?
 dataset.death_date = ons_deaths.date
-"""
+
 # covid-related death (stated anywhere on any of the 15 death certificate options)
 def cause_of_death_matches(codelist):
     conditions = [
