@@ -147,27 +147,6 @@ def prior_events_count_ctv3(codelist, where=True): # ctv3 codelist
         .count_for_patient()
     )
 
-"""
-## ON or AFTER MEDICAL HISTORY DATE
-# First date of event occurring ON or AFTER MEDICAL HISTORY DATE (from codelist / clinical_events)
-after_events = clinical_events.where(clinical_events.date.is_on_or_after(medical_history_date))
-def after_event_date_ctv3(codelist, where=True):
-    return (
-        after_events.where(where)
-        .where(after_events.ctv3_code.is_in(codelist))
-        .sort_by(after_events.date)
-        .first_for_patient()
-        .date
-    )
-# Count all events occurring ON or AFTER MEDICAL HISTORY DATE (from codelist / clinical_events) 
-def after_events_count_ctv3(codelist, where=True):
-    return (
-        after_events.where(where)
-        .where(after_events.ctv3_code.is_in(codelist))
-        .count_for_patient()
-    )
-"""
-
 ### ADMISSIONS
 ## BEFORE BASELINE DATE
 # Most recent admission occurring BEFORE BASELINE DATE (hospital_admissions table)
@@ -194,27 +173,7 @@ def prior_admissions_count(codelist, where=True):
         .count_for_patient()
     )
 
-"""
-## ON or AFTER MEDICAL HISTORY DATE
-# First date of admission for diagnosis from codelist occurring ON or AFTER MEDICAL HISTORY DATE (from codelist / hospital_admissions)
-after_admissions = hospital_admissions.where(hospital_admissions.admission_date.is_on_or_after(medical_history_date))
-def after_admission_date(codelist, where=True):
-    return (
-        after_admissions.where(where)
-        .where(after_admissions.all_diagnoses.is_in(codelist))
-        .sort_by(after_admissions.admission_date)
-        .first_for_patient()
-        .admission_date
-    )
-# Count all admissions for diagnosis (from codelist) occurring ON or AFTER MEDICAL HISTORY DATE (from codelist / hospital_admissions)
-def after_admissions_count(codelist, where=True):
-    return (
-        after_admissions.where(where)
-        .where(after_admissions.all_diagnoses.is_in(codelist))
-        .count_for_patient()
-    )
-"""
-# for BMI, based on https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/dataset_definition.py
+# for BMI calculation, based on https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/dataset_definition.py
 def most_recent_bmi(*, minimum_age_at_measurement, where=True):
     clinical_events = schema.clinical_events
     age_threshold = schema.patients.date_of_birth + days(
@@ -434,24 +393,21 @@ dataset.cov_bin_prediabetes = tmp_cov_bin_prediabetes | tmp_cov_bin_predm_hba1c_
 ### DIABETES end ---------
 
 
-## Hospitalization at baseline (incl. 3 days prior)
+## Hospitalization at baseline (incl. 1 day prior)
 dataset.cov_bin_hosp_baseline = (
-    hospital_admissions.where(hospital_admissions.admission_date.is_on_or_between(baseline_date - days(3), baseline_date))
+    hospital_admissions.where(hospital_admissions.admission_date.is_on_or_between(baseline_date - days(1), baseline_date))
     .exists_for_patient()
 )
 
-## Metformin use before baseline
+## Metformin use before baseline, 
 dataset.cov_bin_metfin_before_baseline = (
     medications.where(
         medications.dmd_code.is_in(metformin_codes)) # https://www.opencodelists.org/codelist/user/john-tazare/metformin-dmd/48e43356/
-        .where(medications.date.is_before(baseline_date))
+        .where(medications.date.is_on_or_between(baseline_date - days(6 * 30), baseline_date))
         .exists_for_patient()
 )
 
-## Metformin allergy, on or before baseline
-
-
-## Use of another COVID-19 medication (e.g. monoclonal antibodies, antiviral) on or before baseline
+## Known hypersensitivity and / or intolerance to metformin, on or before baseline
 
 
 ## Moderate to severe renal impairment (eGFR of <30ml/min/1.73 m2) on or before baseline
@@ -473,16 +429,6 @@ tmp_cov_bin_liver_disease_snomed = has_prior_event_snomed(liver_disease_snomed_c
 tmp_cov_bin_liver_disease_hes = has_prior_admission(liver_disease_icd10) # double-check codelist
 # Combined
 dataset.cov_bin_liver_disease = tmp_cov_bin_liver_disease_snomed | tmp_cov_bin_liver_disease_hes
-
-## Alcohol use disorder, on or before baseline
-
-## Unstable heart failure (Stage 3 or 4 heart failure), on or before baseline
-# Primary care
-tmp_cov_bin_hf_snomed = has_prior_event_snomed(hf_snomed_clinical) # double-check codelist
-# HES APC
-tmp_cov_bin_hf_hes = has_prior_admission(hf_icd10) # double-check codelist
-# Combined
-dataset.cov_bin_hf = tmp_cov_bin_hf_snomed | tmp_cov_bin_hf_hes
 
 ## Use of the following medications in the last 14 days... 
 
