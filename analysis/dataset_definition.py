@@ -493,7 +493,7 @@ dataset.cov_bin_hf = tmp_cov_bin_hf_snomed | tmp_cov_bin_hf_hes
 # (Other) Potential CONFOUNDER variables
 #######################################################################################
 
-## Smoking status at baseline // to be done
+## Smoking status at baseline // to be finalized //
 # cov_cat_smoking_status 
 tmp_most_recent_smoking_code = (
     clinical_events.where(
@@ -568,42 +568,63 @@ tmp_cov_bin_ami_hes = has_prior_admission(ami_icd10)
 # Combined
 dataset.cov_bin_ami = tmp_cov_bin_ami_snomed | tmp_cov_bin_ami_prior_hes | tmp_cov_bin_ami_hes
 
-
-"""
-
 ## All stroke, on or before baseline
-    ### Primary care
-    tmp_cov_bin_stroke_isch_snomed=patients.with_these_clinical_events(
-        stroke_isch_snomed_clinical,
-        returning='binary_flag',
-        on_or_before=f"{index_date_variable}",
-        return_expectations={"incidence": 0.1},
-    ),
-    tmp_cov_bin_stroke_sah_hs_snomed=patients.with_these_clinical_events(
-        stroke_sah_hs_snomed_clinical,
-        returning='binary_flag',
-        on_or_before=f"{index_date_variable}",
-        return_expectations={"incidence": 0.1},
-    ),
-    ### HES APC
-    tmp_cov_bin_stroke_isch_hes=patients.admitted_to_hospital(
-        returning='binary_flag',
-        with_these_diagnoses=stroke_isch_icd10,
-        on_or_before=f"{index_date_variable}",
-        return_expectations={"incidence": 0.1},
-    ),
-    tmp_cov_bin_stroke_sah_hs_hes=patients.admitted_to_hospital(
-        returning='binary_flag',
-        with_these_diagnoses=stroke_sah_hs_icd10,
-        on_or_before=f"{index_date_variable}",
-        return_expectations={"incidence": 0.1},
-    ),
-    ### Combined
-    cov_bin_all_stroke=patients.maximum_of(
-        "tmp_cov_bin_stroke_isch_hes", "tmp_cov_bin_stroke_isch_snomed", "tmp_cov_bin_stroke_sah_hs_hes", "tmp_cov_bin_stroke_sah_hs_snomed",
-    ),
+# Primary care
+tmp_cov_bin_stroke_isch_snomed = has_prior_event_snomed(stroke_isch_snomed_clinical)
+tmp_cov_bin_stroke_sah_hs_snomed = has_prior_event_snomed(stroke_sah_hs_snomed_clinical)
+# HES APC
+tmp_cov_bin_stroke_isch_hes = has_prior_admission(stroke_isch_icd10)
+tmp_cov_bin_stroke_sah_hs_hes = has_prior_admission(stroke_sah_hs_icd10)
+# Combined
+dataset.cov_bin_all_stroke = tmp_cov_bin_stroke_isch_snomed | tmp_cov_bin_stroke_sah_hs_snomed | tmp_cov_bin_stroke_isch_hes | tmp_cov_bin_stroke_sah_hs_hes
 
-"""
+## Other arterial embolism, on or before baseline
+# Primary care
+tmp_cov_bin_other_arterial_embolism_snomed = has_prior_event_snomed(other_arterial_embolism_snomed_clinical)
+# HES APC
+tmp_cov_bin_other_arterial_embolism_hes = has_prior_admission(ami_icd10)
+# Combined
+dataset.cov_bin_other_arterial_embolism = tmp_cov_bin_other_arterial_embolism_snomed | tmp_cov_bin_other_arterial_embolism_hes
+
+## Venous thrombolism events, on or before baseline
+# Primary care
+# combine all VTE codelists
+all_vte_codes_snomed_clinical = clinical_events.where(
+    clinical_events.snomedct_code.is_in(
+        portal_vein_thrombosis_snomed_clinical
+        + dvt_dvt_snomed_clinical
+        + dvt_icvt_snomed_clinical
+        + dvt_pregnancy_snomed_clinical
+        + other_dvt_snomed_clinical
+        + pe_snomed_clinical
+    )
+)
+tmp_cov_bin_vte_snomed = (
+    all_vte_codes_snomed_clinical.where(clinical_events.date.is_on_or_before(baseline_date))
+    .sort_by(clinical_events.date)
+    .exists_for_patient()
+)
+# HES APC
+all_vte_codes_icd10 = hospital_admissions.where(
+    hospital_admissions.all_diagnoses.is_in(
+        portal_vein_thrombosis_icd10
+        + dvt_dvt_icd10
+        + dvt_icvt_icd10
+        + dvt_pregnancy_icd10
+        + other_dvt_icd10
+        + icvt_pregnancy_icd10
+        + pe_icd10
+    )
+)
+tmp_cov_bin_vte_hes = (
+    all_vte_codes_icd10.where(hospital_admissions.admission_date.is_on_or_before(baseline_date))
+    .sort_by(hospital_admissions.admission_date)
+    .exists_for_patient()
+)
+# Combined
+dataset.cov_bin_vte = tmp_cov_bin_vte_snomed | tmp_cov_bin_vte_hes
+
+
 
 
 

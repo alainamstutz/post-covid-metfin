@@ -55,9 +55,8 @@ metformin_codes = codelist_from_csv("codelists/user-john-tazare-metformin-dmd.cs
 
 # kidney disease
 ckd_snomed_clinical_45 = codelist_from_csv("codelists/nhsd-primary-care-domain-refsets-ckdatrisk1_cod.csv",column="code")
-
-ckd_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-ckd_snomed.csv",column="code")
 ckd_icd10 = codelist_from_csv("codelists/user-elsie_horne-ckd_icd10.csv",column="code")
+ckd_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-ckd_snomed.csv",column="code")
 
 # liver disease
 liver_disease_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-liver_disease_snomed.csv",column="code")
@@ -89,6 +88,38 @@ bmi_obesity_icd10 = codelist_from_csv("codelists/user-elsie_horne-bmi_obesity_ic
 ami_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-ami_snomed.csv",column="code")
 ami_icd10 = codelist_from_csv("codelists/user-RochelleKnight-ami_icd10.csv",column="code")
 ami_prior_icd10 = codelist_from_csv("codelists/user-elsie_horne-ami_prior_icd10.csv",column="code")
+
+# all strokes
+stroke_isch_icd10 = codelist_from_csv("codelists/user-RochelleKnight-stroke_isch_icd10.csv",column="code")
+stroke_isch_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-stroke_isch_snomed.csv",column="code")
+stroke_sah_hs_icd10 = codelist_from_csv("codelists/user-RochelleKnight-stroke_sah_hs_icd10.csv",column="code")
+stroke_sah_hs_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-stroke_sah_hs_snomed.csv",column="code")
+
+# other arterial embolism
+other_arterial_embolism_snomed_clinical = codelist_from_csv("codelists/user-tomsrenin-other_art_embol.csv",column="code")
+other_arterial_embolism_icd10 = codelist_from_csv("codelists/user-elsie_horne-other_arterial_embolism_icd10.csv",column="code")
+
+# All VTEs in SNOMED
+# Portal vein thrombosis
+portal_vein_thrombosis_snomed_clinical = codelist_from_csv("codelists/user-tomsrenin-pvt.csv",column="code")
+# DVT
+dvt_dvt_snomed_clinical = codelist_from_csv("codelists/user-tomsrenin-dvt_main.csv",column="code")
+# ICVT
+dvt_icvt_snomed_clinical = codelist_from_csv("codelists/user-tomsrenin-dvt_icvt.csv",column="code")
+# DVT in pregnancy
+dvt_pregnancy_snomed_clinical = codelist_from_csv("codelists/user-tomsrenin-dvt-preg.csv",column="code")
+# Other DVT
+other_dvt_snomed_clinical = codelist_from_csv("codelists/user-tomsrenin-dvt-other.csv",column="code")
+# pulmonary embolism
+pe_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-pe_snomed.csv",column="code")
+# All VTEs ICD10
+portal_vein_thrombosis_icd10 = codelist_from_csv("codelists/user-elsie_horne-portal_vein_thrombosis_icd10.csv",column="code")
+dvt_dvt_icd10 = codelist_from_csv("codelists/user-RochelleKnight-dvt_dvt_icd10.csv",column="code")
+dvt_icvt_icd10 = codelist_from_csv("codelists/user-elsie_horne-dvt_icvt_icd10.csv",column="code")
+dvt_pregnancy_icd10 = codelist_from_csv("codelists/user-elsie_horne-dvt_pregnancy_icd10.csv",column="code")
+other_dvt_icd10 = codelist_from_csv("codelists/user-elsie_horne-other_dvt_icd10.csv",column="code")
+icvt_pregnancy_icd10 = codelist_from_csv("codelists/user-elsie_horne-icvt_pregnancy_icd10.csv",column="code")
+pe_icd10 = codelist_from_csv("codelists/user-RochelleKnight-pe_icd10.csv",column="code")
 
 
 
