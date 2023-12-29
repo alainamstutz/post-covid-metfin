@@ -31,6 +31,11 @@ from ehrql.tables.beta import tpp as schema # for BMI variable (among others)
 ## Study definition helper
 import study_definition_helper_functions as helpers
 
+import operator
+from functools import reduce
+def any_of(conditions):
+    return reduce(operator.or_, conditions)
+
 ## from codelists.py
 from codelists import *
 
@@ -108,11 +113,6 @@ dataset.define_population(
     & was_alive
     & was_registered
 ) 
-
-#######################################################################################
-# DEFINE QUALITY ASSURANCES
-#######################################################################################
-# to be done
 
 #######################################################################################
 # FUNCTIONS
@@ -194,6 +194,47 @@ def most_recent_bmi(*, minimum_age_at_measurement, where=True):
         .sort_by(clinical_events.date)
         .last_for_patient()
     )
+
+# query if causes of death match a given codelist
+def cause_of_death_matches(codelist):
+    conditions = [
+        getattr(ons_deaths, column_name).is_in(codelist)
+        for column_name in (["underlying_cause_of_death"]+[f"cause_of_death_{i:02d}" for i in range(1, 16)])
+    ]
+    return any_of(conditions)
+
+#######################################################################################
+# DEFINE QUALITY ASSURANCES
+#######################################################################################
+## Prostate cancer
+### Primary care
+prostate_cancer_snomed = (
+    clinical_events.where(
+        clinical_events.snomedct_code.is_in(prostate_cancer_snomed_clinical))
+        .exists_for_patient()
+        )
+### HES APC
+prostate_cancer_hes = (
+    hospital_admissions.where(
+        hospital_admissions.all_diagnoses.is_in(prostate_cancer_icd10))
+        .exists_for_patient()
+        )
+### ONS (stated anywhere on death certificate)
+#prostate_cancer_death = cause_of_death_matches(prostate_cancer_icd10).exists_for_patient()
+
+# Combined: Any prostate cancer diagnosis
+# qa_bin_prostate_cancer = prostate_cancer_snomed | prostate_cancer_hes 
+#| prostate_cancer_death
+
+## Pregnancy
+qa_bin_pregnancy = (
+    clinical_events.where(
+        clinical_events.snomedct_code.is_in(pregnancy_snomed_clinical))
+        .exists_for_patient()
+        ),
+
+## Year of birth
+qa_num_birth_year = patients.date_of_birth
 
 #######################################################################################
 # DEMOGRAPHIC variables
