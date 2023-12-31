@@ -96,7 +96,7 @@ baseline_date = minimum_of(covid19_primary_care_date, covid19_sgss_date, covid19
 # INITIALISE the dataset and set the dummy dataset size
 #######################################################################################
 dataset = create_dataset()
-dataset.configure_dummy_data(population_size=50)
+dataset.configure_dummy_data(population_size=30)
 
 dataset.baseline_date = baseline_date
 
@@ -220,21 +220,24 @@ prostate_cancer_hes = (
         .exists_for_patient()
         )
 ### ONS (stated anywhere on death certificate)
-#prostate_cancer_death = cause_of_death_matches(prostate_cancer_icd10).exists_for_patient()
-
+prostate_cancer_death = cause_of_death_matches(prostate_cancer_icd10)
 # Combined: Any prostate cancer diagnosis
-# qa_bin_prostate_cancer = prostate_cancer_snomed | prostate_cancer_hes 
-#| prostate_cancer_death
+dataset.qa_bin_prostate_cancer = case(
+    when(prostate_cancer_snomed).then(True),
+    when(prostate_cancer_hes).then(True),
+    when(prostate_cancer_death).then(True),
+    default=False
+)
 
 ## Pregnancy
-qa_bin_pregnancy = (
+dataset.qa_bin_pregnancy = (
     clinical_events.where(
         clinical_events.snomedct_code.is_in(pregnancy_snomed_clinical))
         .exists_for_patient()
-        ),
+        )
 
 ## Year of birth
-qa_num_birth_year = patients.date_of_birth
+dataset.qa_num_birth_year = patients.date_of_birth
 
 #######################################################################################
 # DEMOGRAPHIC variables
@@ -409,7 +412,7 @@ tmp_cov_date_prediabetes = (
 # Date of preDM HbA1c measure in period before baseline_date in preDM range (mmol/mol): 42-47.9
 tmp_cov_date_predm_hba1c_mmol_mol = (
     clinical_events.where(
-        clinical_events.snomedct_code.is_in(prediabetes_snomed))
+        clinical_events.ctv3_code.is_in(hba1c_new_codes))
         .where(clinical_events.date.is_on_or_before(baseline_date))
         .where((clinical_events.numeric_value>=42) & (clinical_events.numeric_value<=47.9))
         .sort_by(clinical_events.date)
@@ -426,7 +429,7 @@ tmp_cov_bin_prediabetes = has_prior_event_snomed(prediabetes_snomed)
 # Any HbA1c preDM in primary care
 tmp_cov_bin_predm_hba1c_mmol_mol = (
     clinical_events.where(
-        clinical_events.snomedct_code.is_in(prediabetes_snomed))
+        clinical_events.ctv3_code.is_in(hba1c_new_codes))
         .where(clinical_events.date.is_on_or_before(baseline_date))
         .where((clinical_events.numeric_value>=42) & (clinical_events.numeric_value<=47.9))
         .exists_for_patient()
@@ -469,7 +472,7 @@ dataset.cov_bin_chronic_kidney_disease = tmp_cov_bin_chronic_kidney_disease_snom
 ## Moderate to severe hepatic deficiency or liver cirrhosis or Child-Pugh C classification, on or before baseline 
 # Primary care
 tmp_cov_bin_liver_disease_snomed = has_prior_event_snomed(liver_disease_snomed_clinical) # double-check codelist
-# HES APC
+# HES APC
 tmp_cov_bin_liver_disease_hes = has_prior_admission(liver_disease_icd10) # double-check codelist
 # Combined
 dataset.cov_bin_liver_disease = tmp_cov_bin_liver_disease_snomed | tmp_cov_bin_liver_disease_hes
@@ -483,8 +486,7 @@ dataset.cov_bin_liver_disease = tmp_cov_bin_liver_disease_snomed | tmp_cov_bin_l
 # (Other) Potential CONFOUNDER variables
 #######################################################################################
 
-## Smoking status at baseline // to be finalized //
-# cov_cat_smoking_status 
+## Smoking status at baseline
 tmp_most_recent_smoking_code = (
     clinical_events.where(
         clinical_events.ctv3_code.is_in(smoking_clear))
@@ -493,34 +495,35 @@ tmp_most_recent_smoking_code = (
         .last_for_patient()
         .ctv3_code
 )
-most_recent_smoking_code = tmp_most_recent_smoking_code.to_category(smoking_clear)
-tmp_ever_smoked = (
+tmp_most_recent_smoking_cat = tmp_most_recent_smoking_code.to_category(smoking_clear)
+dataset.tmp_most_recent_smoking_cat = tmp_most_recent_smoking_cat
+
+ever_smoked = (
     clinical_events.where(
-        clinical_events.ctv3_code.is_in(smoking_clear))
-        .where(clinical_events.date.is_on_or_before(baseline_date))
-        .ctv3_code
+        clinical_events.ctv3_code.is_in(ever_smoking)) ### used a different codelist with ONLY smoking codes
+        .where(clinical_events.date.is_on_or_before(baseline_date)) 
+        .exists_for_patient()
 )
-tmp_ever_smoked_cat = tmp_ever_smoked.to_category(smoking_clear)
-ever_smoked = case(
-    when(tmp_ever_smoked_cat == "S").then("S"),
-    when(tmp_ever_smoked_cat == "E").then("E"),
-)
-"""
+dataset.ever_smoked = ever_smoked
+
 cov_cat_smoking_status = case(
-    when(most_recent_smoking_code == "S").then("S"),
-    when(most_recent_smoking_code == "E").then("E"),
-    when(most_recent_smoking_code == "N" & ever_smoked == "S").then("E"),
-    when(most_recent_smoking_code == "N" & (ever_smoked != "S" & ever_smoked != "E")).then("N"),
+    when(tmp_most_recent_smoking_cat == "S").then("S"),
+    when(tmp_most_recent_smoking_cat == "E").then("E"),
+    when((tmp_most_recent_smoking_cat == "N") & (ever_smoked == True)).then("E"),
+    when(tmp_most_recent_smoking_cat == "N").then("N"),
+    when((tmp_most_recent_smoking_cat == "M") & (ever_smoked == True)).then("E"),
+    when(tmp_most_recent_smoking_cat == "M").then("M"),
+    default = "M"
 )
-"""
+dataset.cov_cat_smoking_status = cov_cat_smoking_status
 
 ## Care home resident at baseline
 # Flag care home based on primis (patients in long-stay nursing and residential care)
 care_home_code = has_prior_event_snomed(carehome)
-# dataset.care_home_code = care_home_code
+#dataset.care_home_code = care_home_code
 # Flag care home based on TPP
 care_home_tpp = addresses.for_patient_on(baseline_date).care_home_is_potential_match 
-# dataset.care_home_tpp = care_home_tpp
+#dataset.care_home_tpp = care_home_tpp
 dataset.cov_bin_carehome_status = case(
     when(care_home_code).then(True),
     when(care_home_tpp).then(True),
@@ -591,7 +594,7 @@ all_vte_codes_snomed_clinical = clinical_events.where(
 )
 tmp_cov_bin_vte_snomed = (
     all_vte_codes_snomed_clinical.where(clinical_events.date.is_on_or_before(baseline_date))
-    .sort_by(clinical_events.date)
+    #.sort_by(clinical_events.date) # this line of code needed?
     .exists_for_patient()
 )
 # HES APC
@@ -608,7 +611,7 @@ all_vte_codes_icd10 = hospital_admissions.where(
 )
 tmp_cov_bin_vte_hes = (
     all_vte_codes_icd10.where(hospital_admissions.admission_date.is_on_or_before(baseline_date))
-    .sort_by(hospital_admissions.admission_date)
+    #.sort_by(hospital_admissions.admission_date)
     .exists_for_patient()
 )
 # Combined

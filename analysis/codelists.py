@@ -77,11 +77,7 @@ smoking_clear = codelist_from_csv("codelists/opensafely-smoking-clear.csv",
     column="CTV3Code",
     category_column="Category",
 )
-
-smoking_unclear = codelist_from_csv("codelists/opensafely-smoking-unclear.csv",
-    column="CTV3Code",
-    category_column="Category",
-)
+ever_smoking = codelist_from_csv("codelists/user-alainamstutz-ever-smoking-bristol.csv",column="code")
 
 # Patients in long-stay nursing and residential care
 carehome = codelist_from_csv("codelists/primis-covid19-vacc-uptake-longres.csv",column="code")
@@ -126,6 +122,8 @@ dvt_pregnancy_icd10 = codelist_from_csv("codelists/user-elsie_horne-dvt_pregnanc
 other_dvt_icd10 = codelist_from_csv("codelists/user-elsie_horne-other_dvt_icd10.csv",column="code")
 icvt_pregnancy_icd10 = codelist_from_csv("codelists/user-elsie_horne-icvt_pregnancy_icd10.csv",column="code")
 pe_icd10 = codelist_from_csv("codelists/user-RochelleKnight-pe_icd10.csv",column="code")
+
+
 
 # heart failure
 hf_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-hf_snomed.csv",column="code")

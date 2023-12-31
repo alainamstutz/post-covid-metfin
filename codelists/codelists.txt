@@ -38,8 +38,8 @@ user/elsie_horne/liver_disease_snomed/5c978f9c
 user/elsie_horne/hf_snomed/33579ca3
 user/RochelleKnight/hf_icd10/72bbcced
 
-opensafely/smoking-unclear/2020-04-29
 opensafely/smoking-clear/2020-04-29
+user/alainamstutz/ever-smoking-bristol/00731978
 
 primis-covid19-vacc-uptake/longres/v1
 
