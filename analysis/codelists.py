@@ -123,11 +123,38 @@ other_dvt_icd10 = codelist_from_csv("codelists/user-elsie_horne-other_dvt_icd10.
 icvt_pregnancy_icd10 = codelist_from_csv("codelists/user-elsie_horne-icvt_pregnancy_icd10.csv",column="code")
 pe_icd10 = codelist_from_csv("codelists/user-RochelleKnight-pe_icd10.csv",column="code")
 
-
-
 # heart failure
 hf_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-hf_snomed.csv",column="code")
 hf_icd10 = codelist_from_csv("codelists/user-RochelleKnight-hf_icd10.csv",column="code")
+
+# angina
+angina_snomed_clinical = codelist_from_csv("codelists/user-hjforbes-angina_snomed.csv",column="code")
+angina_icd10 = codelist_from_csv("codelists/user-RochelleKnight-angina_icd10.csv",column="code")
+
+# dementia
+dementia_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-dementia_snomed.csv",column="code")
+dementia_icd10 = codelist_from_csv("codelists/user-elsie_horne-dementia_icd10.csv",column="code")
+dementia_vascular_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-dementia_vascular_snomed.csv",column="code")
+dementia_vascular_icd10 = codelist_from_csv("codelists/user-elsie_horne-dementia_vascular_icd10.csv",column="code")
+
+# cancer
+cancer_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-cancer_snomed.csv",column="code")
+cancer_icd10 = codelist_from_csv("codelists/user-elsie_horne-cancer_icd10.csv",column="code")
+
+# hypertension
+hypertension_snomed_clinical = codelist_from_csv("codelists/nhsd-primary-care-domain-refsets-hyp_cod.csv",column="code")
+hypertension_icd10 = codelist_from_csv("codelists/user-elsie_horne-hypertension_icd10.csv",column="code")
+hypertension_drugs_dmd = codelist_from_csv("codelists/user-elsie_horne-hypertension_drugs_dmd.csv",column="dmd_id")
+
+# depression
+depression_snomed_clinical = codelist_from_csv("codelists/user-hjforbes-depression-symptoms-and-diagnoses.csv",column="code")
+depression_icd10 = codelist_from_csv("codelists/user-kurttaylor-depression_icd10.csv",column="code")
+
+# COPD
+copd_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-copd_snomed.csv",column="code")
+copd_icd10 = codelist_from_csv("codelists/user-elsie_horne-copd_icd10.csv",column="code")
+
+
 
 
 

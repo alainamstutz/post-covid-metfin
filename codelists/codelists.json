@@ -162,18 +162,6 @@
       "downloaded_at": "2023-12-10 09:55:12.105619Z",
       "sha": "1126b645b1e22440f513a66cc2cf91a20d7177ad"
     },
-    "user-elsie_horne-hf_snomed.csv": {
-      "id": "user/elsie_horne/hf_snomed/33579ca3",
-      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/hf_snomed/33579ca3/",
-      "downloaded_at": "2023-12-10 09:55:12.405330Z",
-      "sha": "1ec565133002e86008e9f7b77dc3582bf2a9eb6f"
-    },
-    "user-RochelleKnight-hf_icd10.csv": {
-      "id": "user/RochelleKnight/hf_icd10/72bbcced",
-      "url": "https://www.opencodelists.org/codelist/user/RochelleKnight/hf_icd10/72bbcced/",
-      "downloaded_at": "2023-12-10 09:55:12.691567Z",
-      "sha": "6b98f3f1c343f87e39de5b9b0f6d6f805a3fdd3d"
-    },
     "opensafely-smoking-clear.csv": {
       "id": "opensafely/smoking-clear/2020-04-29",
       "url": "https://www.opencodelists.org/codelist/opensafely/smoking-clear/2020-04-29/",
@@ -335,6 +323,30 @@
       "url": "https://www.opencodelists.org/codelist/user/RochelleKnight/pe_icd10/59ac59b8/",
       "downloaded_at": "2023-12-11 15:30:48.516054Z",
       "sha": "066b79182d212664aff52aa293ba048295499eb9"
+    },
+    "user-elsie_horne-hf_snomed.csv": {
+      "id": "user/elsie_horne/hf_snomed/33579ca3",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/hf_snomed/33579ca3/",
+      "downloaded_at": "2023-12-10 09:55:12.405330Z",
+      "sha": "1ec565133002e86008e9f7b77dc3582bf2a9eb6f"
+    },
+    "user-RochelleKnight-hf_icd10.csv": {
+      "id": "user/RochelleKnight/hf_icd10/72bbcced",
+      "url": "https://www.opencodelists.org/codelist/user/RochelleKnight/hf_icd10/72bbcced/",
+      "downloaded_at": "2023-12-10 09:55:12.691567Z",
+      "sha": "6b98f3f1c343f87e39de5b9b0f6d6f805a3fdd3d"
+    },
+    "user-hjforbes-angina_snomed.csv": {
+      "id": "user/hjforbes/angina_snomed/52df16a2",
+      "url": "https://www.opencodelists.org/codelist/user/hjforbes/angina_snomed/52df16a2/",
+      "downloaded_at": "2023-12-31 09:31:16.134599Z",
+      "sha": "a3898f852193d02a74604d9d2d4a2535b8262a8c"
+    },
+    "user-RochelleKnight-angina_icd10.csv": {
+      "id": "user/RochelleKnight/angina_icd10/756e8ce3",
+      "url": "https://www.opencodelists.org/codelist/user/RochelleKnight/angina_icd10/756e8ce3/",
+      "downloaded_at": "2023-12-31 09:31:16.922757Z",
+      "sha": "ac68628572a80c270f36bc9c2744e83c1cb2f3a6"
     },
     "opensafely-nice-managing-the-long-term-effects-of-covid-19.csv": {
       "id": "opensafely/nice-managing-the-long-term-effects-of-covid-19/64f1ae69",

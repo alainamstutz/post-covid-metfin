@@ -617,9 +617,87 @@ tmp_cov_bin_vte_hes = (
 # Combined
 dataset.cov_bin_vte = tmp_cov_bin_vte_snomed | tmp_cov_bin_vte_hes
 
+## Heart failure, on or before baseline
+# Primary care
+tmp_cov_bin_hf_snomed = has_prior_event_snomed(hf_snomed_clinical)
+# HES APC
+tmp_cov_bin_hf_hes = has_prior_admission(hf_icd10)
+# Combined
+dataset.cov_bin_hf = tmp_cov_bin_hf_snomed | tmp_cov_bin_hf_hes
 
+## Angina, on or before baseline
+# Primary care
+tmp_cov_bin_angina_snomed = has_prior_event_snomed(angina_snomed_clinical)
+# HES APC
+tmp_cov_bin_angina_hes = has_prior_admission(angina_icd10)
+# Combined
+dataset.cov_bin_angina = tmp_cov_bin_angina_snomed | tmp_cov_bin_angina_hes
 
+## Dementia, on or before baseline
+# Primary care
+tmp_cov_bin_dementia_snomed = has_prior_event_snomed(dementia_snomed_clinical)
+tmp_cov_bin_dementia_vascular_snomed = has_prior_event_snomed(dementia_vascular_snomed_clinical)
+# HES APC
+tmp_cov_bin_dementia_hes = has_prior_admission(dementia_icd10)
+tmp_cov_bin_dementia_vascular_hes = has_prior_admission(dementia_vascular_icd10)
+# Combined
+dataset.cov_bin_dementia = tmp_cov_bin_dementia_snomed | tmp_cov_bin_dementia_vascular_snomed | tmp_cov_bin_dementia_hes | tmp_cov_bin_dementia_vascular_hes
 
+## Cancer, on or before baseline
+# Primary care
+tmp_cov_bin_cancer_snomed = has_prior_event_snomed(cancer_snomed_clinical)
+# HES APC
+tmp_cov_bin_cancer_hes = has_prior_admission(cancer_icd10)
+# Combined
+dataset.cov_bin_cancer = tmp_cov_bin_cancer_snomed | tmp_cov_bin_cancer_hes
+
+## Hypertension, on or before baseline
+# Primary care
+tmp_cov_bin_hypertension_snomed = has_prior_event_snomed(hypertension_snomed_clinical)
+# HES APC
+tmp_cov_bin_hypertension_hes = has_prior_admission(hypertension_icd10)
+# DMD
+tmp_cov_bin_hypertension_drugs_dmd = (
+    medications.where(
+        medications.dmd_code.is_in(hypertension_drugs_dmd)) 
+        .where(medications.date.is_on_or_before(baseline_date))
+        .exists_for_patient()
+)
+# Combined
+dataset.cov_bin_hypertension = tmp_cov_bin_hypertension_snomed | tmp_cov_bin_hypertension_hes | tmp_cov_bin_hypertension_drugs_dmd
+
+## Depression, on or before baseline
+# Primary care
+tmp_cov_bin_depression_snomed = has_prior_event_snomed(depression_snomed_clinical)
+# HES APC
+tmp_cov_bin_depression_icd10 = has_prior_admission(depression_icd10)
+# Combined
+dataset.cov_bin_depression = tmp_cov_bin_depression_snomed | tmp_cov_bin_depression_icd10
+
+## Chronic obstructive pulmonary disease, on or before baseline
+# Primary care
+tmp_cov_bin_chronic_obstructive_pulmonary_disease_snomed = has_prior_event_snomed(copd_snomed_clinical)
+# HES APC
+tmp_cov_bin_chronic_obstructive_pulmonary_disease_hes = has_prior_admission(copd_icd10)
+# Combined
+dataset.cov_bin_copd = tmp_cov_bin_chronic_obstructive_pulmonary_disease_snomed | tmp_cov_bin_chronic_obstructive_pulmonary_disease_hes
+
+"""
+    ## 2019 consultation rate
+        cov_num_consulation_rate=patients.with_gp_consultations(
+            between=[days(study_dates["pandemic_start"],-365), days(study_dates["pandemic_start"],-1)],
+            returning="number_of_matches_in_period",
+            return_expectations={
+                "int": {"distribution": "poisson", "mean": 5},
+            },
+        ),
+
+    ## Healthcare worker    
+    cov_bin_healthcare_worker=patients.with_healthcare_worker_flag_on_covid_vaccine_record(
+        returning='binary_flag', 
+        return_expectations={"incidence": 0.01},
+    ),
+"""
 
 #######################################################################################
 # INTERVENTION/EXPOSURE variables
