@@ -6,7 +6,20 @@ from ehrql import (
     when,
 )
 
-## quality assurance
+
+#######################################################################################
+# DEFINE the baseline date based on SARS-CoV-2 infection
+#######################################################################################
+## COVID-19
+covid_primary_care_positive_test = codelist_from_csv("codelists/opensafely-covid-identification-in-primary-care-probable-covid-positive-test.csv", column="CTV3ID")
+covid_primary_care_code = codelist_from_csv("codelists/opensafely-covid-identification-in-primary-care-probable-covid-clinical-code.csv", column="CTV3ID")
+covid_primary_care_sequelae = codelist_from_csv("codelists/opensafely-covid-identification-in-primary-care-probable-covid-sequelae.csv", column="CTV3ID")
+covid_codes = codelist_from_csv("codelists/user-RochelleKnight-confirmed-hospitalised-covid-19.csv", column="code") # only PCR-confirmed! => U071 (covid19 virus identified)
+
+
+#######################################################################################
+# QUALITY ASSURANCES variables
+#######################################################################################
 # prostate
 prostate_cancer_icd10 = codelist_from_csv("codelists/user-RochelleKnight-prostate_cancer_icd10.csv",column="code")
 prostate_cancer_snomed_clinical = codelist_from_csv("codelists/user-RochelleKnight-prostate_cancer_snomed.csv",column="code")
@@ -20,12 +33,10 @@ cocp_dmd = codelist_from_csv("codelists/user-elsie_horne-cocp_dmd.csv",column="d
 # hormone replacement therapy
 hrt_dmd = codelist_from_csv("codelists/user-elsie_horne-hrt_dmd.csv",column="dmd_id")
 
-## COVID
-covid_primary_care_positive_test = codelist_from_csv("codelists/opensafely-covid-identification-in-primary-care-probable-covid-positive-test.csv", column="CTV3ID")
-covid_primary_care_code = codelist_from_csv("codelists/opensafely-covid-identification-in-primary-care-probable-covid-clinical-code.csv", column="CTV3ID")
-covid_primary_care_sequelae = codelist_from_csv("codelists/opensafely-covid-identification-in-primary-care-probable-covid-sequelae.csv", column="CTV3ID")
-covid_codes = codelist_from_csv("codelists/user-RochelleKnight-confirmed-hospitalised-covid-19.csv", column="code") # only PCR-confirmed! => U071 (covid19 virus identified)
 
+#######################################################################################
+# DEMOGRAPHIC variables
+#######################################################################################
 # ethnicity
 ethnicity_codes = codelist_from_csv(
     "codelists/opensafely-ethnicity.csv",
@@ -38,7 +49,11 @@ primis_covid19_vacc_update_ethnicity = codelist_from_csv(
     category_column="grouping_6_id",
 )
 
-# diabetes
+
+#######################################################################################
+# ELIGIBILITY variables
+#######################################################################################
+# DIABETES
 # T1DM
 diabetes_type1_ctv3_clinical = codelist_from_csv("codelists/user-hjforbes-type-1-diabetes.csv",column="code")
 # T2DM
@@ -67,8 +82,10 @@ prediabetes_snomed = codelist_from_csv("codelists/opensafely-prediabetes-snomed.
 ## metformin
 metformin_codes = codelist_from_csv("codelists/user-john-tazare-metformin-dmd.csv",column="code")
 
-# kidney disease
+# Moderate to severe renal impairment (eGFR of <30ml/min/1.73 m2; stage 4/5)
 ckd_snomed_clinical_45 = codelist_from_csv("codelists/nhsd-primary-care-domain-refsets-ckdatrisk1_cod.csv",column="code")
+ckd_stage4_icd10 = ["N184"]
+ckd_stage5_icd10 = ["N185"]
 
 # advanced decompensated liver cirrhosis
 advanced_decompensated_cirrhosis_snomed_codes = codelist_from_csv("codelists/opensafely-condition-advanced-decompensated-cirrhosis-of-the-liver.csv",column="code")
@@ -76,6 +93,10 @@ advanced_decompensated_cirrhosis_icd10_codes = codelist_from_csv("codelists/open
 # ascitic drainage
 ascitic_drainage_snomed_codes = codelist_from_csv("codelists/opensafely-procedure-ascitic-drainage.csv",column="code")
 
+
+#######################################################################################
+# (Other) Potential CONFOUNDER variables
+#######################################################################################
 # smoking
 smoking_clear = codelist_from_csv("codelists/opensafely-smoking-clear.csv",
     column="CTV3Code",
@@ -165,6 +186,11 @@ liver_disease_icd10 = codelist_from_csv("codelists/user-elsie_horne-liver_diseas
 # chronic kidney disease
 ckd_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-ckd_snomed.csv",column="code")
 ckd_icd10 = codelist_from_csv("codelists/user-elsie_horne-ckd_icd10.csv",column="code")
+
+
+#######################################################################################
+# OUTCOME variables
+#######################################################################################
 
 # covid infection at hosp incl. clin diagnosis without PCR
 # covid_codes_incl_clin_diag = codelist_from_csv("codelists/opensafely-covid-identification.csv",column="icd10_code")
