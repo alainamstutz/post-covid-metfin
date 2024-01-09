@@ -740,8 +740,6 @@ dataset.cov_bin_chronic_kidney_disease = tmp_cov_bin_chronic_kidney_disease_snom
 # INTERVENTION/EXPOSURE variables
 #######################################################################################
 
-# work in progress #
-
 # METFORMIN
 dataset.exp_date_first_metfin = (
     medications.where(
@@ -751,21 +749,18 @@ dataset.exp_date_first_metfin = (
         .first_for_patient()
         .date
 )
-dataset.exp_count_metfin_within1y = (
+dataset.exp_count_metfin = (
     medications.where(
         medications.dmd_code.is_in(metformin_codes))
         .where(medications.date.is_on_or_after(baseline_date))
         .count_for_patient()
 )
 
-
 #######################################################################################
 # OUTCOME variables
 #######################################################################################
 
 #### SARS-CoV-2 ---------
-
-""" has to be modified
 
 ## long/post covid: https://github.com/opensafely/long-covid/blob/main/analysis/codelists.py
 dataset.long_covid = (
