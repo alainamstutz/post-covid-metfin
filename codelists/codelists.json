@@ -468,6 +468,12 @@
       "downloaded_at": "2023-12-10 09:55:10.750785Z",
       "sha": "f31feab84ee380583be736e0122aae653af0ba30"
     },
+    "opensafely-covid-identification.csv": {
+      "id": "opensafely/covid-identification/2020-06-03",
+      "url": "https://www.opencodelists.org/codelist/opensafely/covid-identification/2020-06-03/",
+      "downloaded_at": "2024-01-09 14:35:40.112312Z",
+      "sha": "124db6929439379b7dacd55ba26ae4f2ed9370bc"
+    },
     "opensafely-nice-managing-the-long-term-effects-of-covid-19.csv": {
       "id": "opensafely/nice-managing-the-long-term-effects-of-covid-19/64f1ae69",
       "url": "https://www.opencodelists.org/codelist/opensafely/nice-managing-the-long-term-effects-of-covid-19/64f1ae69/",

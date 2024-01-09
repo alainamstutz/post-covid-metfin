@@ -24,6 +24,7 @@ from ehrql.tables.beta.tpp import (
     hospital_admissions,
     ethnicity_from_sus,
     vaccinations, 
+    emergency_care_attendances
 )
 from databuilder.codes import CTV3Code, ICD10Code # for BMI variable (among others)
 from ehrql.tables.beta import tpp as schema # for BMI variable (among others)
@@ -65,14 +66,14 @@ primary_care_covid_events = clinical_events.where(
     )
 )
 ## First COVID-19 code (diagnosis, positive test or sequelae) in primary care in study period
-covid19_primary_care_date = (
+tmp_covid19_primary_care_date = (
     primary_care_covid_events.where(clinical_events.date.is_on_or_between(studystart_date,studyend_date))
     .sort_by(clinical_events.date)
     .first_for_patient()
     .date
 )
 ## First positive SARS-COV-2 PCR in study period
-covid19_sgss_date = (
+tmp_covid19_sgss_date = (
     sgss_covid_all_tests.where(
         sgss_covid_all_tests.is_positive.is_not_null()) # double-check with https://docs.opensafely.org/ehrql/reference/schemas/beta.tpp/#sgss_covid_all_tests
         .where(sgss_covid_all_tests.lab_report_date.is_on_or_between(studystart_date,studyend_date))
@@ -81,7 +82,7 @@ covid19_sgss_date = (
         .lab_report_date
 )
 ## First covid-19 related hospital admission in study period // include or exclude since we are only (?) interested in recruitment in primary care
-covid19_hes_date = (
+tmp_covid19_hes_date = (
     hospital_admissions.where(hospital_admissions.all_diagnoses.is_in(covid_codes)) # double-check with https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/codelists.py uses a different codelist: codelists/opensafely-covid-identification.csv
     .where(hospital_admissions.admission_date.is_on_or_between(studystart_date,studyend_date))
     .sort_by(hospital_admissions.admission_date)
@@ -89,7 +90,7 @@ covid19_hes_date = (
     .admission_date
 )
 ### Define (first) baseline date
-baseline_date = minimum_of(covid19_primary_care_date, covid19_sgss_date, covid19_hes_date)
+baseline_date = minimum_of(tmp_covid19_primary_care_date, tmp_covid19_sgss_date, tmp_covid19_hes_date)
 
 
 #######################################################################################
@@ -176,6 +177,7 @@ def prior_admissions_count(codelist, where=True):
         .count_for_patient()
     )
 
+### OTHER functions
 # for BMI calculation, based on https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/dataset_definition.py
 def most_recent_bmi(*, minimum_age_at_measurement, where=True):
     clinical_events = schema.clinical_events
@@ -194,6 +196,14 @@ def most_recent_bmi(*, minimum_age_at_measurement, where=True):
         .sort_by(clinical_events.date)
         .last_for_patient()
     )
+
+# query if emergency attentance diagnosis codes match a given codelist
+def emergency_diagnosis_matches(codelist):
+    conditions = [
+        getattr(emergency_care_attendances, column_name).is_in(codelist)
+        for column_name in [f"diagnosis_{i:02d}" for i in range(1, 25)]
+    ]
+    return emergency_care_attendances.where(any_of(conditions))
 
 # query if causes of death match a given codelist
 def cause_of_death_matches(codelist):
@@ -760,59 +770,18 @@ dataset.exp_count_metfin = (
 # OUTCOME variables
 #######################################################################################
 
-#### SARS-CoV-2 ---------
+#### SARS-CoV-2 --------- based on https://github.com/opensafely/long-covid/blob/main/analysis/codelists.py
 
-## long/post covid: https://github.com/opensafely/long-covid/blob/main/analysis/codelists.py
-dataset.long_covid = (
-    clinical_events.where(
-        clinical_events.snomedct_code.is_in(long_covid_diagnostic_codes))
-        .where(clinical_events.date.is_on_or_after(baseline_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .exists_for_patient()
-        |
-    clinical_events.where(
-        clinical_events.snomedct_code.is_in(long_covid_referral_codes))
-        .where(clinical_events.date.is_on_or_after(baseline_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .exists_for_patient()  
-        |
-    clinical_events.where(
-        clinical_events.snomedct_code.is_in(long_covid_assessment_codes))
-        .where(clinical_events.date.is_on_or_after(baseline_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .exists_for_patient() 
-)
-dataset.post_viral_fatigue = (
-    clinical_events.where(
-        clinical_events.snomedct_code.is_in(post_viral_fatigue_codes))
-        .where(clinical_events.date.is_on_or_after(baseline_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date
-)
-
-
-# All COVID-19 events in primary care
-primary_care_covid_events = clinical_events.where(
-    clinical_events.ctv3_code.is_in(
-        covid_primary_care_code
-        + covid_primary_care_positive_test
-        + covid_primary_care_sequelae
-    )
-)
-# First COVID-19 code (diagnosis, positive test or sequalae) in primary care after index date
-tmp_exp_date_covid19_confirmed_snomed = (
-    primary_care_covid_events.where(clinical_events.date.is_on_or_after(baseline_date))
+## COVID infection
+# First COVID-19 code (diagnosis, positive test or sequelae) in primary care, after baseline date
+tmp_out_covid19_primary_care_date = (
+    primary_care_covid_events.where(clinical_events.date.is_on_or_after(baseline_date)) # details re primary_care_covid_events see # DEFINE the baseline date based on SARS-CoV-2 infection
     .sort_by(clinical_events.date)
     .first_for_patient()
     .date
 )
-
-# Date of first positive SARS-COV-2 PCR antigen test after index date. Around/before index date?
-tmp_exp_date_covid19_confirmed_sgss = (
+# First positive SARS-COV-2 PCR, after baseline date
+tmp_out_covid19_sgss_date = (
     sgss_covid_all_tests.where(
         sgss_covid_all_tests.is_positive.is_not_null()) # double-check with https://docs.opensafely.org/ehrql/reference/schemas/beta.tpp/#sgss_covid_all_tests
         .where(sgss_covid_all_tests.lab_report_date.is_on_or_after(baseline_date))
@@ -820,28 +789,65 @@ tmp_exp_date_covid19_confirmed_sgss = (
         .first_for_patient()
         .lab_report_date
 )
-
-# First covid-19 related hospital admission after index date
-tmp_exp_date_covid19_confirmed_hes = (
-    hospital_admissions.where(hospital_admissions.all_diagnoses.is_in(covid_codes)) # https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/codelists.py uses a different codelist: codelists/opensafely-covid-identification.csv
+# First covid-19 related hospital admission, after baseline date
+tmp_out_covid19_hes_date = (
+    hospital_admissions.where(hospital_admissions.all_diagnoses.is_in(covid_codes_incl_clin_diag)) # includes the only clinically diagnosed cases: https://www.opencodelists.org/codelist/opensafely/covid-identification/2020-06-03/
     .where(hospital_admissions.admission_date.is_on_or_after(baseline_date))
     .sort_by(hospital_admissions.admission_date)
     .first_for_patient()
     .admission_date
 )
+dataset.out_covid19_date = minimum_of(tmp_out_covid19_primary_care_date, tmp_out_covid19_sgss_date, tmp_out_covid19_hes_date)
 
+# Emergency attendance for covid, after baseline date // probably incorporate into above
+dataset.out_covid19_emergency_date = (
+    emergency_diagnosis_matches(covid_emergency)
+    .where(emergency_care_attendances.arrival_date.is_on_or_after(baseline_date))
+    .sort_by(emergency_care_attendances.arrival_date)
+    .first_for_patient()
+    .arrival_date
+)
+
+## Long COVID
+## All Long COVID-19 events in primary care
+primary_care_long_covid = clinical_events.where(
+    clinical_events.snomedct_code.is_in(
+        long_covid_diagnostic_codes
+        + long_covid_referral_codes
+        + long_covid_assessment_codes
+    )
+)
+# Any Long COVID code in primary care after baseline date
+dataset.out_long_covid = (
+    primary_care_long_covid.where(clinical_events.date.is_on_or_after(baseline_date))
+    .exists_for_patient()
+)
+# First Long COVID code in primary care after baseline date
+dataset.out_long_covid_first_date = (
+    primary_care_long_covid.where(clinical_events.date.is_on_or_after(baseline_date))
+    .sort_by(clinical_events.date)
+    .first_for_patient()
+    .date
+)
+# Any viral fatigue code in primary care after baseline date
+dataset.out_viral_fatigue = (
+    clinical_events.where(clinical_events.snomedct_code.is_in(post_viral_fatigue_codes))
+    .where(clinical_events.date.is_on_or_after(baseline_date))
+    .exists_for_patient()
+)
+# First viral fatigue code in primary care after baseline date
+dataset.out_viral_fatigue_first_date = (
+    clinical_events.where(clinical_events.snomedct_code.is_in(post_viral_fatigue_codes))
+    .where(clinical_events.date.is_on_or_after(baseline_date))
+    .sort_by(clinical_events.date)
+    .first_for_patient()
+    .date
+)
+
+## Death
 # all-cause death ## death table: I need to search in all cause of death or only underlying_cause_of_death ?
 dataset.death_date = ons_deaths.date
 
-# covid-related death (stated anywhere on any of the 15 death certificate options)
-def cause_of_death_matches(codelist):
-    conditions = [
-        getattr(ons_deaths, column_name).is_in(codelist)
-        for column_name in (["underlying_cause_of_death"]+[f"cause_of_death_{i:02d}" for i in range(1, 16)])
-    ]
-    return any_of(conditions)
-dataset.tmp_exp_date_covid19_confirmed_death = cause_of_death_matches(covid_codes) # https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/codelists.py uses a different codelist: codelists/opensafely-covid-identification.csv
-"""
-
-
+# covid-related death (stated anywhere on any of the 15 death certificate options) # https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/codelists.py uses a different codelist: codelists/opensafely-covid-identification.csv
+dataset.death_cause_covid = cause_of_death_matches(covid_codes_incl_clin_diag)
 
