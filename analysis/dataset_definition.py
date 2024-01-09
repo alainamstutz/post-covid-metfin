@@ -239,6 +239,21 @@ dataset.qa_bin_pregnancy = (
 ## Year of birth
 dataset.qa_num_birth_year = patients.date_of_birth
 
+## Combined oral contraceptive pill
+dataset.qa_bin_combined_oral_contraceptive_pill = (
+    medications.where(
+        medications.dmd_code.is_in(cocp_dmd))
+        .where(medications.date.is_on_or_before(baseline_date))
+        .exists_for_patient()
+)
+## Hormone replacement therapy
+dataset.qa_bin_hormone_replacement_therapy = (
+    medications.where(
+        medications.dmd_code.is_in(hrt_dmd))
+        .where(medications.date.is_on_or_before(baseline_date))
+        .exists_for_patient()
+)
+
 #######################################################################################
 # DEMOGRAPHIC variables
 #######################################################################################

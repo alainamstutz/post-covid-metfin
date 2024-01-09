@@ -14,7 +14,11 @@ prostate_cancer_snomed_clinical = codelist_from_csv("codelists/user-RochelleKnig
 # pregnancy
 pregnancy_snomed_clinical = codelist_from_csv("codelists/user-RochelleKnight-pregnancy_and_birth_snomed.csv",column="code")
 
+# combined oral contraceptive pill
+cocp_dmd = codelist_from_csv("codelists/user-elsie_horne-cocp_dmd.csv",column="dmd_id")
 
+# hormone replacement therapy
+hrt_dmd = codelist_from_csv("codelists/user-elsie_horne-hrt_dmd.csv",column="dmd_id")
 
 ## COVID
 covid_primary_care_positive_test = codelist_from_csv("codelists/opensafely-covid-identification-in-primary-care-probable-covid-positive-test.csv", column="CTV3ID")
