@@ -348,6 +348,96 @@
       "downloaded_at": "2023-12-31 09:31:16.922757Z",
       "sha": "ac68628572a80c270f36bc9c2744e83c1cb2f3a6"
     },
+    "user-elsie_horne-dementia_snomed.csv": {
+      "id": "user/elsie_horne/dementia_snomed/7bd3364c",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/dementia_snomed/7bd3364c/",
+      "downloaded_at": "2024-01-09 06:25:33.818969Z",
+      "sha": "aaf3c972001fc48fa32a2030e4996d4ce7ca5012"
+    },
+    "user-elsie_horne-dementia_icd10.csv": {
+      "id": "user/elsie_horne/dementia_icd10/2df21cb7",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/dementia_icd10/2df21cb7/",
+      "downloaded_at": "2024-01-09 06:25:33.993536Z",
+      "sha": "d22eb43caf43b93fc2e9a431fc3f3b91d9e73c3c"
+    },
+    "user-elsie_horne-dementia_vascular_icd10.csv": {
+      "id": "user/elsie_horne/dementia_vascular_icd10/27c5e93c",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/dementia_vascular_icd10/27c5e93c/",
+      "downloaded_at": "2024-01-09 06:25:34.151006Z",
+      "sha": "af55dec671d26621f1a8c01c9b002b096eed27ce"
+    },
+    "user-elsie_horne-dementia_vascular_snomed.csv": {
+      "id": "user/elsie_horne/dementia_vascular_snomed/0eb67607",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/dementia_vascular_snomed/0eb67607/",
+      "downloaded_at": "2024-01-09 06:25:34.348002Z",
+      "sha": "47a67ea3a18239dbdff6c0f514ea81fe6d2d1bec"
+    },
+    "user-elsie_horne-cancer_snomed.csv": {
+      "id": "user/elsie_horne/cancer_snomed/23271cdf",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/cancer_snomed/23271cdf/",
+      "downloaded_at": "2024-01-09 06:25:34.846196Z",
+      "sha": "d058582fe371bdf49fb60a829e255163c57bcaba"
+    },
+    "user-elsie_horne-cancer_icd10.csv": {
+      "id": "user/elsie_horne/cancer_icd10/55460349",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/cancer_icd10/55460349/",
+      "downloaded_at": "2024-01-09 06:25:35.019628Z",
+      "sha": "e7d60dcd0d942c6db6095390c5befcf623cb4b36"
+    },
+    "nhsd-primary-care-domain-refsets-hyp_cod.csv": {
+      "id": "nhsd-primary-care-domain-refsets/hyp_cod/20210127",
+      "url": "https://www.opencodelists.org/codelist/nhsd-primary-care-domain-refsets/hyp_cod/20210127/",
+      "downloaded_at": "2024-01-09 06:25:35.190685Z",
+      "sha": "2c1fb493d94ce1610482d575ef14c35bd09e47c1"
+    },
+    "user-elsie_horne-hypertension_icd10.csv": {
+      "id": "user/elsie_horne/hypertension_icd10/1a48296e",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/hypertension_icd10/1a48296e/",
+      "downloaded_at": "2024-01-09 06:25:35.357796Z",
+      "sha": "196b2688d715a5265757642853d94f824741f783"
+    },
+    "user-elsie_horne-hypertension_drugs_dmd.csv": {
+      "id": "user/elsie_horne/hypertension_drugs_dmd/0009f464",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/hypertension_drugs_dmd/0009f464/",
+      "downloaded_at": "2024-01-09 06:25:35.647035Z",
+      "sha": "9d97d2f8dd93c7942db9463b4e5e300a5ec35a85"
+    },
+    "user-hjforbes-depression-symptoms-and-diagnoses.csv": {
+      "id": "user/hjforbes/depression-symptoms-and-diagnoses/499814eb",
+      "url": "https://www.opencodelists.org/codelist/user/hjforbes/depression-symptoms-and-diagnoses/499814eb/",
+      "downloaded_at": "2024-01-09 06:25:35.842128Z",
+      "sha": "fb7d78483687797b51f106137a809c0e469ca6c0"
+    },
+    "user-kurttaylor-depression_icd10.csv": {
+      "id": "user/kurttaylor/depression_icd10/4dc56a05",
+      "url": "https://www.opencodelists.org/codelist/user/kurttaylor/depression_icd10/4dc56a05/",
+      "downloaded_at": "2024-01-09 06:25:36.017414Z",
+      "sha": "ae1ab7bb89c1636e7f582b9cb2a164221b1b1f46"
+    },
+    "user-elsie_horne-depression_icd10.csv": {
+      "id": "user/elsie_horne/depression_icd10/116935fd",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/depression_icd10/116935fd/",
+      "downloaded_at": "2024-01-09 06:25:36.181373Z",
+      "sha": "3453d912aa7f2d43a3b58a388c54204eea44daa2"
+    },
+    "user-elsie_horne-depression_snomed.csv": {
+      "id": "user/elsie_horne/depression_snomed/7859c2c7",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/depression_snomed/7859c2c7/",
+      "downloaded_at": "2024-01-09 06:25:36.365703Z",
+      "sha": "7715294e5c7b5d11f10fd359679abd79d351257f"
+    },
+    "user-elsie_horne-copd_snomed.csv": {
+      "id": "user/elsie_horne/copd_snomed/419c1000",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/copd_snomed/419c1000/",
+      "downloaded_at": "2024-01-09 06:25:36.483302Z",
+      "sha": "8621c69b3c52fd62b4ed4811411037eb9a2c9bb1"
+    },
+    "user-elsie_horne-copd_icd10.csv": {
+      "id": "user/elsie_horne/copd_icd10/5aab8335",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/copd_icd10/5aab8335/",
+      "downloaded_at": "2024-01-09 06:25:36.600486Z",
+      "sha": "06a1624b3719e3185010fa65aa7322d9176f914c"
+    },
     "opensafely-nice-managing-the-long-term-effects-of-covid-19.csv": {
       "id": "opensafely/nice-managing-the-long-term-effects-of-covid-19/64f1ae69",
       "url": "https://www.opencodelists.org/codelist/opensafely/nice-managing-the-long-term-effects-of-covid-19/64f1ae69/",
