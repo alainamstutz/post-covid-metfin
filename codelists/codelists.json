@@ -144,35 +144,29 @@
       "downloaded_at": "2023-12-29 18:38:06.377380Z",
       "sha": "ff4159659a614591714f21b6c6c5ed2a9bc66259"
     },
-    "user-elsie_horne-ckd_snomed.csv": {
-      "id": "user/elsie_horne/ckd_snomed/25d9dcd5",
-      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/ckd_snomed/25d9dcd5/",
-      "downloaded_at": "2023-12-10 09:55:10.452460Z",
-      "sha": "bff2f324ff0a1569ce7709903fd6a67b6ee5334d"
-    },
-    "user-elsie_horne-ckd_icd10.csv": {
-      "id": "user/elsie_horne/ckd_icd10/0cca69a0",
-      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/ckd_icd10/0cca69a0/",
-      "downloaded_at": "2023-12-10 09:55:10.750785Z",
-      "sha": "f31feab84ee380583be736e0122aae653af0ba30"
-    },
     "nhsd-primary-care-domain-refsets-ckdatrisk1_cod.csv": {
       "id": "nhsd-primary-care-domain-refsets/ckdatrisk1_cod/08a67d83",
       "url": "https://www.opencodelists.org/codelist/nhsd-primary-care-domain-refsets/ckdatrisk1_cod/08a67d83/",
       "downloaded_at": "2023-12-10 10:18:09.079359Z",
       "sha": "7da4477498d4e5e1439d83bf000b6a2f9c55f2bd"
     },
-    "user-elsie_horne-liver_disease_icd10.csv": {
-      "id": "user/elsie_horne/liver_disease_icd10/75a702d1",
-      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/liver_disease_icd10/75a702d1/",
-      "downloaded_at": "2023-12-10 09:55:11.491676Z",
-      "sha": "0ad936ee6779893439a3e1fa042cdeeead7504ca"
+    "opensafely-condition-advanced-decompensated-cirrhosis-of-the-liver.csv": {
+      "id": "opensafely/condition-advanced-decompensated-cirrhosis-of-the-liver/071038cf",
+      "url": "https://www.opencodelists.org/codelist/opensafely/condition-advanced-decompensated-cirrhosis-of-the-liver/071038cf/",
+      "downloaded_at": "2024-01-09 07:34:55.957973Z",
+      "sha": "cc91d2287dc30a4417140d1d2960dea6eecd61dc"
     },
-    "user-elsie_horne-liver_disease_snomed.csv": {
-      "id": "user/elsie_horne/liver_disease_snomed/5c978f9c",
-      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/liver_disease_snomed/5c978f9c/",
-      "downloaded_at": "2023-12-10 09:55:12.105619Z",
-      "sha": "1126b645b1e22440f513a66cc2cf91a20d7177ad"
+    "opensafely-condition-advanced-decompensated-cirrhosis-of-the-liver-and-associated-conditions-icd-10.csv": {
+      "id": "opensafely/condition-advanced-decompensated-cirrhosis-of-the-liver-and-associated-conditions-icd-10/00e40554",
+      "url": "https://www.opencodelists.org/codelist/opensafely/condition-advanced-decompensated-cirrhosis-of-the-liver-and-associated-conditions-icd-10/00e40554/",
+      "downloaded_at": "2024-01-09 07:34:56.128796Z",
+      "sha": "d0b25cdc87dd1916e6b9e038456d25e8c28cd811"
+    },
+    "opensafely-procedure-ascitic-drainage.csv": {
+      "id": "opensafely/procedure-ascitic-drainage/39388836",
+      "url": "https://www.opencodelists.org/codelist/opensafely/procedure-ascitic-drainage/39388836/",
+      "downloaded_at": "2024-01-09 07:34:56.315197Z",
+      "sha": "ca7b31e702e404f0d8aa2e48aa12f244d197e4dc"
     },
     "opensafely-smoking-clear.csv": {
       "id": "opensafely/smoking-clear/2020-04-29",
@@ -449,6 +443,30 @@
       "url": "https://www.opencodelists.org/codelist/user/elsie_horne/copd_icd10/5aab8335/",
       "downloaded_at": "2024-01-09 06:25:36.600486Z",
       "sha": "06a1624b3719e3185010fa65aa7322d9176f914c"
+    },
+    "user-elsie_horne-liver_disease_icd10.csv": {
+      "id": "user/elsie_horne/liver_disease_icd10/75a702d1",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/liver_disease_icd10/75a702d1/",
+      "downloaded_at": "2023-12-10 09:55:11.491676Z",
+      "sha": "0ad936ee6779893439a3e1fa042cdeeead7504ca"
+    },
+    "user-elsie_horne-liver_disease_snomed.csv": {
+      "id": "user/elsie_horne/liver_disease_snomed/5c978f9c",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/liver_disease_snomed/5c978f9c/",
+      "downloaded_at": "2023-12-10 09:55:12.105619Z",
+      "sha": "1126b645b1e22440f513a66cc2cf91a20d7177ad"
+    },
+    "user-elsie_horne-ckd_snomed.csv": {
+      "id": "user/elsie_horne/ckd_snomed/25d9dcd5",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/ckd_snomed/25d9dcd5/",
+      "downloaded_at": "2023-12-10 09:55:10.452460Z",
+      "sha": "bff2f324ff0a1569ce7709903fd6a67b6ee5334d"
+    },
+    "user-elsie_horne-ckd_icd10.csv": {
+      "id": "user/elsie_horne/ckd_icd10/0cca69a0",
+      "url": "https://www.opencodelists.org/codelist/user/elsie_horne/ckd_icd10/0cca69a0/",
+      "downloaded_at": "2023-12-10 09:55:10.750785Z",
+      "sha": "f31feab84ee380583be736e0122aae653af0ba30"
     },
     "opensafely-nice-managing-the-long-term-effects-of-covid-19.csv": {
       "id": "opensafely/nice-managing-the-long-term-effects-of-covid-19/64f1ae69",

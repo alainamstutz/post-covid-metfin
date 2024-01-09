@@ -69,12 +69,12 @@ metformin_codes = codelist_from_csv("codelists/user-john-tazare-metformin-dmd.cs
 
 # kidney disease
 ckd_snomed_clinical_45 = codelist_from_csv("codelists/nhsd-primary-care-domain-refsets-ckdatrisk1_cod.csv",column="code")
-ckd_icd10 = codelist_from_csv("codelists/user-elsie_horne-ckd_icd10.csv",column="code")
-ckd_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-ckd_snomed.csv",column="code")
 
-# liver disease
-liver_disease_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-liver_disease_snomed.csv",column="code")
-liver_disease_icd10 = codelist_from_csv("codelists/user-elsie_horne-liver_disease_icd10.csv",column="code")
+# advanced decompensated liver cirrhosis
+advanced_decompensated_cirrhosis_snomed_codes = codelist_from_csv("codelists/opensafely-condition-advanced-decompensated-cirrhosis-of-the-liver.csv",column="code")
+advanced_decompensated_cirrhosis_icd10_codes = codelist_from_csv("codelists/opensafely-condition-advanced-decompensated-cirrhosis-of-the-liver-and-associated-conditions-icd-10.csv",column="code")
+# ascitic drainage
+ascitic_drainage_snomed_codes = codelist_from_csv("codelists/opensafely-procedure-ascitic-drainage.csv",column="code")
 
 # smoking
 smoking_clear = codelist_from_csv("codelists/opensafely-smoking-clear.csv",
@@ -158,6 +158,13 @@ depression_icd10 = codelist_from_csv("codelists/user-kurttaylor-depression_icd10
 copd_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-copd_snomed.csv",column="code")
 copd_icd10 = codelist_from_csv("codelists/user-elsie_horne-copd_icd10.csv",column="code")
 
+# liver disease
+liver_disease_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-liver_disease_snomed.csv",column="code")
+liver_disease_icd10 = codelist_from_csv("codelists/user-elsie_horne-liver_disease_icd10.csv",column="code")
+
+# chronic kidney disease
+ckd_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-ckd_snomed.csv",column="code")
+ckd_icd10 = codelist_from_csv("codelists/user-elsie_horne-ckd_icd10.csv",column="code")
 
 
 

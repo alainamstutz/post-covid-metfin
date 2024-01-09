@@ -461,7 +461,7 @@ dataset.cov_bin_hosp_baseline = (
     .exists_for_patient()
 )
 
-## Metformin use before baseline, 
+## Metformin use at baseline, defined as receiving a metformin prescription up until 6 months prior to baseline date (assuming half-yearly prescription for stable diabetes across GPs in the UK)
 dataset.cov_bin_metfin_before_baseline = (
     medications.where(
         medications.dmd_code.is_in(metformin_codes)) # https://www.opencodelists.org/codelist/user/john-tazare/metformin-dmd/48e43356/
@@ -472,29 +472,35 @@ dataset.cov_bin_metfin_before_baseline = (
 ## Known hypersensitivity and / or intolerance to metformin, on or before baseline
 
 
-## Moderate to severe renal impairment (eGFR of <30ml/min/1.73 m2) on or before baseline
+"""
+
+## Moderate to severe renal impairment (eGFR of <30ml/min/1.73 m2; stage 4/5) on or before baseline
 # Primary care
-tmp_cov_bin_chronic_kidney_disease_snomed = has_prior_event_snomed(ckd_snomed_clinical_45) # double-check codelist
+tmp_cov_bin_renal_impairement_snomed = has_prior_event_snomed(ckd_snomed_clinical_45) # double-check codelist
 # HES APC
-tmp_cov_bin_chronic_kidney_disease_hes = has_prior_admission(ckd_icd10) # needs to be adapted to only include stage 4 and 5
+tmp_cov_bin_ckd4_hes = has_prior_admission(codelist(["N184"], system="icd10"))
+tmp_cov_bin_ckd5_hes = has_prior_admission(codelist(["N185"], system="icd10"))
 # Combined
-dataset.cov_bin_chronic_kidney_disease = tmp_cov_bin_chronic_kidney_disease_snomed | tmp_cov_bin_chronic_kidney_disease_hes
+dataset.cov_bin_severe_renal_impairment = tmp_cov_bin_renal_impairement_snomed | tmp_cov_bin_ckd4_hes | tmp_cov_bin_ckd5_hes
+
+include kidney transplant and dialyses codes? https://github.com/opensafely/Paxlovid-and-sotrovimab/blob/main/analysis/study_definition.py#L595
+
+"""
 
 
-
-""" to be discussed
-
-## Moderate to severe hepatic deficiency or liver cirrhosis or Child-Pugh C classification, on or before baseline 
+## Clinical history of advance decompensated liver cirrhosis, on or before baseline 
 # Primary care
-tmp_cov_bin_liver_disease_snomed = has_prior_event_snomed(liver_disease_snomed_clinical) # double-check codelist
+tmp_cov_bin_liver_cirrhosis_snomed = has_prior_event_snomed(advanced_decompensated_cirrhosis_snomed_codes)
+tmp_cov_bin_ascitis_drainage_snomed = has_prior_event_snomed(ascitic_drainage_snomed_codes) # regular ascitic drainage
 # HES APC
-tmp_cov_bin_liver_disease_hes = has_prior_admission(liver_disease_icd10) # double-check codelist
+tmp_cov_bin_liver_cirrhosis_hes = has_prior_admission(advanced_decompensated_cirrhosis_icd10_codes)
 # Combined
-dataset.cov_bin_liver_disease = tmp_cov_bin_liver_disease_snomed | tmp_cov_bin_liver_disease_hes
+dataset.cov_bin_liver_cirrhosis = tmp_cov_bin_liver_cirrhosis_snomed | tmp_cov_bin_ascitis_drainage_snomed | tmp_cov_bin_liver_cirrhosis_hes
+
 
 ## Use of the following medications in the last 14 days... 
 
-"""
+
 
 
 #######################################################################################
@@ -696,6 +702,22 @@ tmp_cov_bin_chronic_obstructive_pulmonary_disease_snomed = has_prior_event_snome
 tmp_cov_bin_chronic_obstructive_pulmonary_disease_hes = has_prior_admission(copd_icd10)
 # Combined
 dataset.cov_bin_copd = tmp_cov_bin_chronic_obstructive_pulmonary_disease_snomed | tmp_cov_bin_chronic_obstructive_pulmonary_disease_hes
+
+## Liver disease, on or before baseline
+# Primary care
+tmp_cov_bin_liver_disease_snomed = has_prior_event_snomed(liver_disease_snomed_clinical)
+# HES APC
+tmp_cov_bin_liver_disease_hes = has_prior_admission(liver_disease_icd10)
+# Combined
+dataset.cov_bin_liver_disease = tmp_cov_bin_liver_disease_snomed | tmp_cov_bin_liver_disease_hes
+
+## Chronic kidney disease, on or before baseline 
+# Primary care
+tmp_cov_bin_chronic_kidney_disease_snomed = has_prior_event_snomed(ckd_snomed_clinical) 
+# HES APC
+tmp_cov_bin_chronic_kidney_disease_hes = has_prior_admission(ckd_icd10)
+# Combined
+dataset.cov_bin_chronic_kidney_disease = tmp_cov_bin_chronic_kidney_disease_snomed | tmp_cov_bin_chronic_kidney_disease_hes
 
 """
     ## 2019 consultation rate
