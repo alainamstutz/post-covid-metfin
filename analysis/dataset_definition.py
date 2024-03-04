@@ -48,11 +48,10 @@ from datetime import date ## needed?
 # DEFINE the dates
 #######################################################################################
 studystart_date = "2020-01-01" # start of the pandemic
-studyend_date = "2022-04-01" # last study entry dates (end of mass testing?) / to be defined
+studyend_date = "2022-04-01" # end of mass testing
 followupend_date = "2023-04-30" # end of follow-up / to be defined
-vaccine_peak_date = "2021-06-18"
-medical_history_date = "1990-01-01" # e.g. to define DM diagnosis (for "ever" vs prior 2 years)
-
+vaccine_peak_date = "2021-06-18" # to stratify analysis / to be discussed
+# add sub-cohort dates, to replace studystart_date & studyend_date for each sub-cohort
 
 #######################################################################################
 # DEFINE the baseline date based on SARS-CoV-2 infection
@@ -65,14 +64,14 @@ primary_care_covid_events = clinical_events.where(
         + covid_primary_care_sequelae
     )
 )
-## First COVID-19 code (diagnosis, positive test or sequelae) in primary care in study period
+## First COVID-19 code (diagnosis, positive test or sequelae) in primary care in recruitment period
 tmp_covid19_primary_care_date = (
     primary_care_covid_events.where(clinical_events.date.is_on_or_between(studystart_date,studyend_date))
     .sort_by(clinical_events.date)
     .first_for_patient()
     .date
 )
-## First positive SARS-COV-2 PCR in study period
+## First positive SARS-COV-2 PCR in recruitment period
 tmp_covid19_sgss_date = (
     sgss_covid_all_tests.where(
         sgss_covid_all_tests.is_positive.is_not_null()) # double-check with https://docs.opensafely.org/ehrql/reference/schemas/beta.tpp/#sgss_covid_all_tests
@@ -81,7 +80,9 @@ tmp_covid19_sgss_date = (
         .first_for_patient()
         .lab_report_date
 )
-## First covid-19 related hospital admission in study period // include or exclude since we are only (?) interested in recruitment in primary care
+
+"""
+## First covid-19 related hospital admission in recruitment period // include or exclude since we are only (?) interested in recruitment in primary care
 tmp_covid19_hes_date = (
     hospital_admissions.where(hospital_admissions.all_diagnoses.is_in(covid_codes)) # double-check with https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/codelists.py uses a different codelist: codelists/opensafely-covid-identification.csv
     .where(hospital_admissions.admission_date.is_on_or_between(studystart_date,studyend_date))
@@ -89,38 +90,18 @@ tmp_covid19_hes_date = (
     .first_for_patient()
     .admission_date
 )
-### Define (first) baseline date
-baseline_date = minimum_of(tmp_covid19_primary_care_date, tmp_covid19_sgss_date, tmp_covid19_hes_date)
+"""
+
+### Define (first) baseline date within recruitment period (within each sub-cohort)
+baseline_date = minimum_of(tmp_covid19_primary_care_date, tmp_covid19_sgss_date)
 
 
 #######################################################################################
-# INITIALISE the dataset and set the dummy dataset size
+# FUNCTIONS (all based on baseline_date)
 #######################################################################################
-dataset = create_dataset()
-dataset.configure_dummy_data(population_size=30)
-
-dataset.baseline_date = baseline_date
-
-# population variables for dataset definition // eventually take out to show entire flow chart
-is_female_or_male = patients.sex.is_in(["female", "male"]) # only include f, m and no missing values
-was_adult = (patients.age_on(baseline_date) >= 18) & (patients.age_on(baseline_date) <= 110) # only include adults and no missing values
-was_alive = (patients.date_of_death.is_after(baseline_date) | patients.date_of_death.is_null()) # only include if alive 
-was_registered = practice_registrations.for_patient_on(baseline_date).exists_for_patient() # only include if registered on baseline date
-
-# define/create dataset
-dataset.define_population(
-    is_female_or_male
-    & was_adult
-    & was_alive
-    & was_registered
-) 
-
-#######################################################################################
-# FUNCTIONS
-#######################################################################################
-## PRIMARY CARE
-## BEFORE BASELINE DATE
-# Any events occurring BEFORE BASELINE DATE (clinical_events table) 
+### PRIMARY CARE
+## EVER BEFORE BASELINE DATE (any history of)
+# Any event (clinical_events table)
 prior_events = clinical_events.where(clinical_events.date.is_on_or_before(baseline_date))
 def has_prior_event_snomed(codelist, where=True): # snomed codelist
     return (
@@ -134,7 +115,7 @@ def has_prior_event_ctv3(codelist, where=True): # ctv3 codelist
         .where(prior_events.ctv3_code.is_in(codelist))
         .exists_for_patient()
     )
-# Most recent event occurring BEFORE BASELINE DATE (clinical_events table) 
+# Most recent event date
 def prior_event_date_ctv3(codelist, where=True): # ctv3 codelist
     return (
         prior_events.where(where)
@@ -143,17 +124,96 @@ def prior_event_date_ctv3(codelist, where=True): # ctv3 codelist
         .last_for_patient()
         .date
     )
-# Count prior events occurring BEFORE BASELINE DATE (clinical_events table)
+# Count all prior events
 def prior_events_count_ctv3(codelist, where=True): # ctv3 codelist
     return (
         prior_events.where(where)
         .where(prior_events.ctv3_code.is_in(codelist))
         .count_for_patient()
     )
+# Any medication prescription (medications table) 
+prior_prescription = medications.where(medications.date.is_on_or_before(baseline_date))
+def has_prior_prescription(codelist, where=True): # always DMD codes
+    return (
+        prior_prescription.where(where)
+        .where(prior_prescription.dmd_code.is_in(codelist))
+        .exists_for_patient()
+    )
+# Most recent prescription date
+def has_prior_prescription_date(codelist, where=True):
+    return (
+        prior_prescription.where(where)
+        .where(prior_prescription.dmd_code.is_in(codelist))
+        .sort_by(prior_prescription.date)
+        .last_for_patient()
+        .date
+    )
 
-### ADMISSIONS
-## BEFORE BASELINE DATE
-# Most recent admission occurring BEFORE BASELINE DATE (hospital_admissions table)
+## 6M BEFORE BASELINE DATE
+# Any event (clinical_events table)
+prior_events_6m = clinical_events.where(clinical_events.date.is_on_or_between(baseline_date - days(183), baseline_date)) # Calculated from 1 year = 365.25 days, taking into account leap years. 
+def has_prior_event_6m_snomed(codelist, where=True): # snomed codelist
+    return (
+        prior_events_6m.where(where)
+        .where(prior_events_6m.snomedct_code.is_in(codelist))
+        .exists_for_patient()
+    )
+def has_prior_event_6m_ctv3(codelist, where=True): # ctv3 codelist
+    return (
+        prior_events_6m.where(where)
+        .where(prior_events_6m.ctv3_code.is_in(codelist))
+        .exists_for_patient()
+    )
+# Most recent event date
+def prior_event_6m_date_ctv3(codelist, where=True): # ctv3 codelist
+    return (
+        prior_events_6m.where(where)
+        .where(prior_events_6m.ctv3_code.is_in(codelist))
+        .sort_by(prior_events_6m.date)
+        .last_for_patient()
+        .date
+    )
+# Any medication prescription (medications table) 
+prior_prescription_6m = medications.where(medications.date.is_on_or_between(baseline_date - days(183), baseline_date)) # Calculated from 1 year = 365.25 days, taking into account leap years. 
+def has_prior_prescription_6m(codelist, where=True): # always DMD codes
+    return (
+        prior_prescription_6m.where(where)
+        .where(prior_prescription_6m.dmd_code.is_in(codelist))
+        .exists_for_patient()
+    )
+# Most recent prescription date
+def has_prior_prescription_6m_date(codelist, where=True):
+    return (
+        prior_prescription_6m.where(where)
+        .where(prior_prescription_6m.dmd_code.is_in(codelist))
+        .sort_by(prior_prescription_6m.date)
+        .last_for_patient()
+        .date
+    )
+
+## 14 Days BEFORE BASELINE DATE
+# Any medication prescription (medications table) 
+prior_prescription_14d = medications.where(medications.date.is_on_or_between(baseline_date - days(14), baseline_date))
+def has_prior_prescription_14d(codelist, where=True): # always DMD codes
+    return (
+        prior_prescription_14d.where(where)
+        .where(prior_prescription_14d.dmd_code.is_in(codelist))
+        .exists_for_patient()
+    )
+# Most recent prescription date
+def has_prior_prescription_14d_date(codelist, where=True):
+    return (
+        prior_prescription_14d.where(where)
+        .where(prior_prescription_14d.dmd_code.is_in(codelist))
+        .sort_by(prior_prescription_14d.date)
+        .last_for_patient()
+        .date
+    )
+
+
+### HOSPITAL ADMISSIONS (HES APC)
+## EVER BEFORE BASELINE DATE (any history of)
+# Any event (hospital_admissions table)
 prior_admissions = hospital_admissions.where(hospital_admissions.admission_date.is_on_or_before(baseline_date))
 def has_prior_admission(codelist, where=True):
     return (
@@ -161,6 +221,7 @@ def has_prior_admission(codelist, where=True):
         .where(prior_admissions.all_diagnoses.is_in(codelist))
         .exists_for_patient()
     )
+# Most recent event (date)
 def prior_admission_date(codelist, where=True):
     return (
         prior_admissions.where(where)
@@ -169,13 +230,33 @@ def prior_admission_date(codelist, where=True):
         .last_for_patient()
         .admission_date
     )
-# Count prior admission occurring BEFORE BASELINE DATE (hospital_admissions table)
+# Count all prior admissions
 def prior_admissions_count(codelist, where=True):
     return (
         prior_admissions.where(where)
         .where(prior_admissions.all_diagnoses.is_in(codelist))
         .count_for_patient()
     )
+
+## 6M BEFORE BASELINE DATE
+# Any event (hospital_admissions table)
+prior_admissions_6m = hospital_admissions.where(hospital_admissions.admission_date.is_on_or_between(baseline_date - days(183), baseline_date)) # Calculated from 1 year = 365.25 days, taking into account leap years.
+def has_prior_6m_admission(codelist, where=True):
+    return (
+        prior_admissions_6m.where(where)
+        .where(prior_admissions_6m.all_diagnoses.is_in(codelist))
+        .exists_for_patient()
+    )
+# Most recent event (date)
+def prior_admission_6m_date(codelist, where=True):
+    return (
+        prior_admissions_6m.where(where)
+        .where(prior_admissions_6m.all_diagnoses.is_in(codelist))
+        .sort_by(prior_admissions_6m.admission_date)
+        .last_for_patient()
+        .admission_date
+    )
+
 
 ### OTHER functions
 # for BMI calculation, based on https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/dataset_definition.py
@@ -213,10 +294,57 @@ def cause_of_death_matches(codelist):
     ]
     return any_of(conditions)
 
+
 #######################################################################################
-# DEFINE QUALITY ASSURANCES
+# INITIALISE the dataset and set the dummy dataset size
 #######################################################################################
-## Prostate cancer
+dataset = create_dataset()
+dataset.configure_dummy_data(population_size=30)
+dataset.baseline_date = baseline_date
+dataset.define_population(patients.exists_for_patient())
+
+
+#######################################################################################
+# QUALITY ASSURANCES and completeness criteria
+#######################################################################################
+
+# population variables for dataset definition 
+dataset.qa_bin_is_female_or_male = patients.sex.is_in(["female", "male"]) # only include f, m and no missing values
+dataset.qa_bin_was_adult = (patients.age_on(baseline_date) >= 18) & (patients.age_on(baseline_date) <= 110) # only include adults (18-110) and no missing values
+dataset.qa_bin_was_alive = (patients.date_of_death.is_after(baseline_date) | patients.date_of_death.is_null()) # only include if alive 
+dataset.qa_bin_known_imd = addresses.for_patient_on(baseline_date).exists_for_patient() # known deprivation
+dataset.qa_bin_was_registered = practice_registrations.spanning(baseline_date - days(366), baseline_date).exists_for_patient() # only include if registered on baseline date spanning back 1 year. Calculated from 1 year = 365.25 days, taking into account leap years.
+
+"""
+# define/create dataset // eventually take out to show entire flow chart
+dataset.define_population(
+    is_female_or_male
+    & was_adult
+    & was_alive
+    & was_registered
+) 
+"""
+
+## Year of birth
+dataset.qa_num_birth_year = patients.date_of_birth
+
+## Date of death
+dataset.qa_date_of_death = ons_deaths.date
+
+## Pregnancy (over entire study period, not based on baseline date -> no function for this)
+dataset.qa_bin_pregnancy = (
+    clinical_events.where(
+        clinical_events.snomedct_code.is_in(pregnancy_snomed_clinical))
+        .exists_for_patient()
+        )
+
+## Combined oral contraceptive pill
+dataset.qa_bin_cocp = has_prior_prescription(cocp_dmd)
+
+## Hormone replacement therapy
+dataset.qa_bin_hrt = has_prior_prescription(hrt_dmd)
+
+## Prostate cancer (over entire study period, not based on baseline date -> no function for this)
 ### Primary care
 prostate_cancer_snomed = (
     clinical_events.where(
@@ -239,30 +367,6 @@ dataset.qa_bin_prostate_cancer = case(
     default=False
 )
 
-## Pregnancy
-dataset.qa_bin_pregnancy = (
-    clinical_events.where(
-        clinical_events.snomedct_code.is_in(pregnancy_snomed_clinical))
-        .exists_for_patient()
-        )
-
-## Year of birth
-dataset.qa_num_birth_year = patients.date_of_birth
-
-## Combined oral contraceptive pill
-dataset.qa_bin_combined_oral_contraceptive_pill = (
-    medications.where(
-        medications.dmd_code.is_in(cocp_dmd))
-        .where(medications.date.is_on_or_before(baseline_date))
-        .exists_for_patient()
-)
-## Hormone replacement therapy
-dataset.qa_bin_hormone_replacement_therapy = (
-    medications.where(
-        medications.dmd_code.is_in(hrt_dmd))
-        .where(medications.date.is_on_or_before(baseline_date))
-        .exists_for_patient()
-)
 
 #######################################################################################
 # DEMOGRAPHIC variables
@@ -424,6 +528,9 @@ dataset.tmp_cov_date_first_diabetes_diag = maximum_of( # change name to last
          tmp_cov_date_nonmetform_drugs_snomed
 )
 
+### DIABETES end ---------
+
+
 ## Prediabetes, on or before baseline
 # Date of preDM code in primary care
 tmp_cov_date_prediabetes = (
@@ -462,9 +569,6 @@ tmp_cov_bin_predm_hba1c_mmol_mol = (
 # Any preDM diagnosis or Hb1Ac preDM range value (in period before baseline_date)
 dataset.cov_bin_prediabetes = tmp_cov_bin_prediabetes | tmp_cov_bin_predm_hba1c_mmol_mol
 
-### DIABETES end ---------
-
-
 ## Hospitalization at baseline (incl. 1 day prior)
 dataset.cov_bin_hosp_baseline = (
     hospital_admissions.where(hospital_admissions.admission_date.is_on_or_between(baseline_date - days(1), baseline_date))
@@ -472,18 +576,11 @@ dataset.cov_bin_hosp_baseline = (
 )
 
 ## Metformin use at baseline, defined as receiving a metformin prescription up until 6 months prior to baseline date (assuming half-yearly prescription for stable diabetes across GPs in the UK)
-dataset.cov_bin_metfin_before_baseline = (
-    medications.where(
-        medications.dmd_code.is_in(metformin_codes)) # https://www.opencodelists.org/codelist/user/john-tazare/metformin-dmd/48e43356/
-        .where(medications.date.is_on_or_between(baseline_date - days(6 * 30), baseline_date))
-        .exists_for_patient()
-)
+dataset.cov_bin_metfin_before_baseline = has_prior_prescription_6m(metformin_codes) # https://www.opencodelists.org/codelist/user/john-tazare/metformin-dmd/48e43356/
+dataset.cov_bin_metfin_before_baseline_date = has_prior_prescription_6m_date(metformin_codes)
 
-"""
-## Known hypersensitivity and / or intolerance to metformin, on or before baseline
-
-
-"""
+## Known hypersensitivity / intolerance to metformin, on or before baseline
+dataset.cov_bin_metfin_allergy = has_prior_event_snomed(metformin_allergy) 
 
 ## Moderate to severe renal impairment (eGFR of <30ml/min/1.73 m2; stage 4/5), on or before baseline
 # Primary care
@@ -504,16 +601,35 @@ tmp_cov_bin_liver_cirrhosis_hes = has_prior_admission(advanced_decompensated_cir
 # Combined
 dataset.cov_bin_liver_cirrhosis = tmp_cov_bin_liver_cirrhosis_snomed | tmp_cov_bin_ascitis_drainage_snomed | tmp_cov_bin_liver_cirrhosis_hes
 
+## Use of the following medications in the last 14 days (drug-drug interaction with metformin)
+dataset.cov_bin_metfin_interaction = has_prior_prescription_14d(metformin_interaction_codes) 
+dataset.cov_bin_metfin_interaction_date = has_prior_prescription_14d_date(metformin_interaction_codes)
 
-"""
-## Use of the following medications in the last 14 days... 
+## Prior Long COVID diagnosis, based on https://github.com/opensafely/long-covid/blob/main/analysis/codelists.py
+## All Long COVID-19 events in primary care
+primary_care_long_covid = clinical_events.where(
+    clinical_events.snomedct_code.is_in(
+        long_covid_diagnostic_codes
+        + long_covid_referral_codes
+        + long_covid_assessment_codes
+    )
+)
+# Any Long COVID code in primary care on or before baseline date
+dataset.cov_bin_long_covid = (
+    primary_care_long_covid.where(clinical_events.date.is_on_or_before(baseline_date))
+    .exists_for_patient()
+)
+dataset.cov_bin_long_covid_date = (
+    primary_care_long_covid.where(clinical_events.date.is_on_or_before(baseline_date))
+    .sort_by(clinical_events.date)
+    .last_for_patient()
+    .date
+)
 
-
-"""
 
 
 #######################################################################################
-# (Other) Potential CONFOUNDER variables
+# Potential CONFOUNDER variables / Covariates for IPTW and IPCW
 #######################################################################################
 
 ## Smoking status at baseline

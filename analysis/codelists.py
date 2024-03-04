@@ -53,7 +53,7 @@ primis_covid19_vacc_update_ethnicity = codelist_from_csv(
 #######################################################################################
 # ELIGIBILITY variables
 #######################################################################################
-# DIABETES
+## DIABETES
 # T1DM
 diabetes_type1_ctv3_clinical = codelist_from_csv("codelists/user-hjforbes-type-1-diabetes.csv",column="code")
 # T2DM
@@ -68,7 +68,6 @@ diabetes_type1_icd10 = codelist_from_csv("codelists/opensafely-type-1-diabetes-s
 diabetes_type2_icd10 = codelist_from_csv("codelists/user-r_denholm-type-2-diabetes-secondary-care-bristol.csv",column="code")
 # Non-diagnostic diabetes codes
 diabetes_diagnostic_ctv3_clinical = codelist_from_csv("codelists/user-hjforbes-nondiagnostic-diabetes-codes.csv",column="code")
-
 # HbA1c
 hba1c_new_codes = codelist_from_csv("codelists/user-alainamstutz-hba1c-bristol.csv",column="code")
 # Antidiabetic drugs
@@ -76,22 +75,35 @@ insulin_snomed_clinical = codelist_from_csv("codelists/opensafely-insulin-medica
 antidiabetic_drugs_snomed_clinical = codelist_from_csv("codelists/opensafely-antidiabetic-drugs.csv",column="id")
 non_metformin_dmd = codelist_from_csv("codelists/user-r_denholm-non-metformin-antidiabetic-drugs_bristol.csv",column="id")
 
-# Prediabetes
+## Prediabetes
 prediabetes_snomed = codelist_from_csv("codelists/opensafely-prediabetes-snomed.csv",column="code")
 
 ## metformin
 metformin_codes = codelist_from_csv("codelists/user-john-tazare-metformin-dmd.csv",column="code")
 
-# Moderate to severe renal impairment (eGFR of <30ml/min/1.73 m2; stage 4/5)
+## metformin allergy
+metformin_allergy = codelist_from_csv("codelists/user-alainamstutz-metformin-intolerance-bristol.csv",column="code")
+
+## moderate to severe renal impairment (eGFR of <30ml/min/1.73 m2; stage 4/5)
 ckd_snomed_clinical_45 = codelist_from_csv("codelists/nhsd-primary-care-domain-refsets-ckdatrisk1_cod.csv",column="code")
 ckd_stage4_icd10 = ["N184"]
 ckd_stage5_icd10 = ["N185"]
 
-# advanced decompensated liver cirrhosis
+## advanced decompensated liver cirrhosis
 advanced_decompensated_cirrhosis_snomed_codes = codelist_from_csv("codelists/opensafely-condition-advanced-decompensated-cirrhosis-of-the-liver.csv",column="code")
 advanced_decompensated_cirrhosis_icd10_codes = codelist_from_csv("codelists/opensafely-condition-advanced-decompensated-cirrhosis-of-the-liver-and-associated-conditions-icd-10.csv",column="code")
 # ascitic drainage
 ascitic_drainage_snomed_codes = codelist_from_csv("codelists/opensafely-procedure-ascitic-drainage.csv",column="code")
+
+## drug-drug interaction with metformin
+metformin_interaction_codes = codelist_from_csv("codelists/user-alainamstutz-metformin-drug-drug-interaction-bristol-dmd.csv",column="code")
+
+## Prior Long COVID diagnosis
+long_covid_diagnostic_codes = codelist_from_csv("codelists/opensafely-nice-managing-the-long-term-effects-of-covid-19.csv",column="code")
+long_covid_referral_codes = codelist_from_csv("codelists/opensafely-referral-and-signposting-for-long-covid.csv",column="code")
+long_covid_assessment_codes = codelist_from_csv("codelists/opensafely-assessment-instruments-and-outcome-measures-for-long-covid.csv",column="code")
+
+post_viral_fatigue_codes = codelist_from_csv("codelists/user-alex-walker-post-viral-syndrome.csv",column="code")
 
 
 #######################################################################################
@@ -207,9 +219,4 @@ covid_codes_incl_clin_diag = ["U071", "U072", "U109"]
 # option without "post-covid syndrome" (> 3 months after infection) based on https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/codelists.py 
 covid_emergency = ["1240751000000100", "1325171000000109", "1325181000000106"]
 
-# long covid
-long_covid_diagnostic_codes = codelist_from_csv("codelists/opensafely-nice-managing-the-long-term-effects-of-covid-19.csv",column="code")
-long_covid_referral_codes = codelist_from_csv("codelists/opensafely-referral-and-signposting-for-long-covid.csv",column="code")
-long_covid_assessment_codes = codelist_from_csv("codelists/opensafely-assessment-instruments-and-outcome-measures-for-long-covid.csv",column="code")
-
-post_viral_fatigue_codes = codelist_from_csv("codelists/user-alex-walker-post-viral-syndrome.csv",column="code")
+# long covid (see in eligibility criteria)
