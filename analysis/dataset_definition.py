@@ -19,6 +19,8 @@ from ehrql.tables.beta.tpp import (
     medications,
     patients,
     practice_registrations,
+    appointments,
+    occupation_on_covid_vaccine_record,
     ons_deaths,
     sgss_covid_all_tests,
     hospital_admissions,
@@ -116,6 +118,14 @@ def has_prior_event_ctv3(codelist, where=True): # ctv3 codelist
         .exists_for_patient()
     )
 # Most recent event date
+def prior_event_date_snomed(codelist, where=True): # snomed codelist
+    return (
+        prior_events.where(where)
+        .where(prior_events.snomedct_code.is_in(codelist))
+        .sort_by(prior_events.date)
+        .last_for_patient()
+        .date
+    )
 def prior_event_date_ctv3(codelist, where=True): # ctv3 codelist
     return (
         prior_events.where(where)
@@ -149,30 +159,23 @@ def has_prior_prescription_date(codelist, where=True):
         .date
     )
 
-## 6M BEFORE BASELINE DATE
-# Any event (clinical_events table)
-prior_events_6m = clinical_events.where(clinical_events.date.is_on_or_between(baseline_date - days(183), baseline_date)) # Calculated from 1 year = 365.25 days, taking into account leap years. 
-def has_prior_event_6m_snomed(codelist, where=True): # snomed codelist
+## 2y BEFORE BASELINE DATE 
+# Most recent value (clinical_events table)
+recent_value_2y = clinical_events.where(clinical_events.date.is_on_or_between(baseline_date - days(2*366), baseline_date)) # Calculated from 1 year = 365.25 days, taking into account leap years. 
+def recent_value_2y_snomed(codelist, where=True): # snomed codelist
     return (
-        prior_events_6m.where(where)
-        .where(prior_events_6m.snomedct_code.is_in(codelist))
-        .exists_for_patient()
+        recent_value_2y.where(where)
+        .where(recent_value_2y.snomedct_code.is_in(codelist))
+        .numeric_value.maximum_for_patient()
     )
-def has_prior_event_6m_ctv3(codelist, where=True): # ctv3 codelist
+def recent_value_2y_ctv3(codelist, where=True): # ctv3 codelist
     return (
-        prior_events_6m.where(where)
-        .where(prior_events_6m.ctv3_code.is_in(codelist))
-        .exists_for_patient()
+        recent_value_2y.where(where)
+        .where(recent_value_2y.ctv3_code.is_in(codelist))
+        .numeric_value.maximum_for_patient()
     )
-# Most recent event date
-def prior_event_6m_date_ctv3(codelist, where=True): # ctv3 codelist
-    return (
-        prior_events_6m.where(where)
-        .where(prior_events_6m.ctv3_code.is_in(codelist))
-        .sort_by(prior_events_6m.date)
-        .last_for_patient()
-        .date
-    )
+
+## 6M BEFORE BASELINE DATE (only for prescription data)
 # Any medication prescription (medications table) 
 prior_prescription_6m = medications.where(medications.date.is_on_or_between(baseline_date - days(183), baseline_date)) # Calculated from 1 year = 365.25 days, taking into account leap years. 
 def has_prior_prescription_6m(codelist, where=True): # always DMD codes
@@ -190,8 +193,7 @@ def has_prior_prescription_6m_date(codelist, where=True):
         .last_for_patient()
         .date
     )
-
-## 14 Days BEFORE BASELINE DATE
+## 14 Days BEFORE BASELINE DATE (only for prescription data)
 # Any medication prescription (medications table) 
 prior_prescription_14d = medications.where(medications.date.is_on_or_between(baseline_date - days(14), baseline_date))
 def has_prior_prescription_14d(codelist, where=True): # always DMD codes
@@ -209,7 +211,6 @@ def has_prior_prescription_14d_date(codelist, where=True):
         .last_for_patient()
         .date
     )
-
 
 ### HOSPITAL ADMISSIONS (HES APC)
 ## EVER BEFORE BASELINE DATE (any history of)
@@ -237,26 +238,6 @@ def prior_admissions_count(codelist, where=True):
         .where(prior_admissions.all_diagnoses.is_in(codelist))
         .count_for_patient()
     )
-
-## 6M BEFORE BASELINE DATE
-# Any event (hospital_admissions table)
-prior_admissions_6m = hospital_admissions.where(hospital_admissions.admission_date.is_on_or_between(baseline_date - days(183), baseline_date)) # Calculated from 1 year = 365.25 days, taking into account leap years.
-def has_prior_6m_admission(codelist, where=True):
-    return (
-        prior_admissions_6m.where(where)
-        .where(prior_admissions_6m.all_diagnoses.is_in(codelist))
-        .exists_for_patient()
-    )
-# Most recent event (date)
-def prior_admission_6m_date(codelist, where=True):
-    return (
-        prior_admissions_6m.where(where)
-        .where(prior_admissions_6m.all_diagnoses.is_in(codelist))
-        .sort_by(prior_admissions_6m.admission_date)
-        .last_for_patient()
-        .admission_date
-    )
-
 
 ### OTHER functions
 # for BMI calculation, based on https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/dataset_definition.py
@@ -426,9 +407,9 @@ cov_date_t1dm = minimum_of(tmp_cov_date_t1dm_ctv3, tmp_cov_date_t1dm_hes)
 
 # Count of number of records
 # Primary care
-tmp_cov_count_t1dm_snomed = prior_events_count_ctv3(diabetes_type1_ctv3_clinical) # change name to ctv3
+dataset.tmp_cov_count_t1dm_snomed = prior_events_count_ctv3(diabetes_type1_ctv3_clinical) # change name to ctv3
 # HES APC
-tmp_cov_count_t1dm_hes = prior_admissions_count(diabetes_type1_icd10)
+dataset.tmp_cov_count_t1dm_hes = prior_admissions_count(diabetes_type1_icd10)
 
 ### Type 2 Diabetes
 # Date of latest recording
@@ -441,9 +422,9 @@ cov_date_t2dm = minimum_of(tmp_cov_date_t2dm_ctv3, tmp_cov_date_t2dm_hes)
 
 # Count of number of records
 # Primary care
-tmp_cov_count_t2dm_snomed = prior_events_count_ctv3(diabetes_type2_ctv3_clinical) # change name to ctv3
+dataset.tmp_cov_count_t2dm_snomed = prior_events_count_ctv3(diabetes_type2_ctv3_clinical) # change name to ctv3
 # HES APC
-tmp_cov_count_t2dm_hes = prior_admissions_count(diabetes_type2_icd10)
+dataset.tmp_cov_count_t2dm_hes = prior_admissions_count(diabetes_type2_icd10)
 
 ### Diabetes unspecified/other
 # Date of latest recording
@@ -452,7 +433,7 @@ cov_date_otherdm = prior_event_date_ctv3(diabetes_other_ctv3_clinical)
 
 # Count of number of records
 # Primary care
-tmp_cov_count_otherdm = prior_events_count_ctv3(diabetes_other_ctv3_clinical) # change name to ctv3
+dataset.tmp_cov_count_otherdm = prior_events_count_ctv3(diabetes_other_ctv3_clinical) # change name to ctv3
 
 ### Gestational diabetes
 # Date of latest recording
@@ -466,18 +447,19 @@ cov_date_poccdm = prior_event_date_ctv3(diabetes_diagnostic_ctv3_clinical)
 
 # Count of number of records
 # Primary care
-tmp_cov_count_poccdm_snomed = prior_events_count_ctv3(diabetes_diagnostic_ctv3_clinical) # change name to ctv3
+dataset.tmp_cov_count_poccdm_snomed = prior_events_count_ctv3(diabetes_diagnostic_ctv3_clinical) # change name to ctv3
 
 ### Other variables needed to define diabetes
-# Maximum HbA1c measure (in period before baseline_date)
+# Maximum HbA1c measure (in period before baseline_date) // or only back 2 years (then use function)
 tmp_cov_num_max_hba1c_mmol_mol = (
     clinical_events.where(
         clinical_events.ctv3_code.is_in(hba1c_new_codes))
         .where(clinical_events.date.is_on_or_before(baseline_date))
         .numeric_value.maximum_for_patient()
 )
+dataset.tmp_cov_num_max_hba1c_mmol_mol = tmp_cov_num_max_hba1c_mmol_mol
 # Date of latest maximum HbA1c measure
-tmp_cov_num_max_hba1c_date = (
+dataset.tmp_cov_num_max_hba1c_date = (
     clinical_events.where(
         clinical_events.ctv3_code.is_in(hba1c_new_codes))
         .where(clinical_events.date.is_on_or_before(baseline_date)) # this line of code probably not needed again
@@ -487,44 +469,26 @@ tmp_cov_num_max_hba1c_date = (
         .date
 )
 #  Diabetes drugs
-tmp_cov_date_insulin_snomed = (
-    medications.where(
-        medications.dmd_code.is_in(insulin_snomed_clinical)) # medications. only has dmd_code, no snomed. The codes look the same to me; dmd = snomed?
-        .where(medications.date.is_on_or_before(baseline_date))
-        .sort_by(medications.date)
-        .last_for_patient()
-        .date
-)
-tmp_cov_date_antidiabetic_drugs_snomed = (
-    medications.where(
-        medications.dmd_code.is_in(antidiabetic_drugs_snomed_clinical))
-        .where(medications.date.is_on_or_before(baseline_date))
-        .sort_by(medications.date)
-        .last_for_patient()
-        .date
-)   
-tmp_cov_date_nonmetform_drugs_snomed = ( ## why is this needed; tmp_cov_date_antidiabetic_drugs_snomed not sufficient?
-    medications.where(
-        medications.dmd_code.is_in(non_metformin_dmd))
-        .where(medications.date.is_on_or_before(baseline_date))
-        .sort_by(medications.date)
-        .last_for_patient()
-        .date
-)      
+tmp_cov_date_insulin_snomed = has_prior_prescription_date(insulin_snomed_clinical)
+tmp_cov_date_antidiabetic_drugs_snomed = has_prior_prescription_date(antidiabetic_drugs_snomed_clinical)
+tmp_cov_date_nonmetform_drugs_snomed = has_prior_prescription_date(non_metformin_dmd) # why is this needed; tmp_cov_date_antidiabetic_drugs_snomed not sufficient?
 
+"""
 # Generate variable to identify latest date (in period before baseline_date) that any diabetes medication was prescribed
 tmp_cov_date_diabetes_medication = maximum_of(
     tmp_cov_date_insulin_snomed, 
     tmp_cov_date_antidiabetic_drugs_snomed) # why excluding tmp_cov_date_nonmetform_drugs_snomed? Is tmp_cov_date_diabetes_medication even needed?
+"""
 
 # Generate variable to identify latest date (in period before baseline_date) that any diabetes diagnosis codes were recorded
 dataset.tmp_cov_date_first_diabetes_diag = maximum_of( # change name to last
-         cov_date_gestationaldm,
-         cov_date_otherdm,
-         cov_date_t1dm, 
          cov_date_t2dm, 
+         cov_date_t1dm,
+         cov_date_otherdm,
+         cov_date_gestationaldm,
          cov_date_poccdm,
-         tmp_cov_date_diabetes_medication,
+         tmp_cov_date_insulin_snomed,
+         tmp_cov_date_antidiabetic_drugs_snomed,
          tmp_cov_date_nonmetform_drugs_snomed
 )
 
@@ -533,14 +497,7 @@ dataset.tmp_cov_date_first_diabetes_diag = maximum_of( # change name to last
 
 ## Prediabetes, on or before baseline
 # Date of preDM code in primary care
-tmp_cov_date_prediabetes = (
-    clinical_events.where(
-        clinical_events.snomedct_code.is_in(prediabetes_snomed))
-        .where(clinical_events.date.is_on_or_before(baseline_date))
-        .sort_by(clinical_events.date)
-        .last_for_patient()
-        .date
-)
+tmp_cov_date_prediabetes = prior_event_date_snomed(prediabetes_snomed)
 # Date of preDM HbA1c measure in period before baseline_date in preDM range (mmol/mol): 42-47.9
 tmp_cov_date_predm_hba1c_mmol_mol = (
     clinical_events.where(
@@ -676,6 +633,7 @@ dataset.cov_bin_carehome_status = case(
     default=False
 )
 
+
 ## Obesity, on or before baseline
 # Primary care
 tmp_cov_bin_obesity_snomed = has_prior_event_snomed(bmi_obesity_snomed_clinical)
@@ -683,20 +641,6 @@ tmp_cov_bin_obesity_snomed = has_prior_event_snomed(bmi_obesity_snomed_clinical)
 tmp_cov_bin_obesity_hes = has_prior_admission(bmi_obesity_icd10)
 # Combined
 dataset.cov_bin_obesity = tmp_cov_bin_obesity_snomed | tmp_cov_bin_obesity_hes
-
-## BMI, on or before baseline 
-bmi_measurement = most_recent_bmi(
-    where=clinical_events.date.is_after(baseline_date - days(5 * 365)),
-    minimum_age_at_measurement=16,
-)
-cov_num_bmi = bmi_measurement.numeric_value
-dataset.cov_cat_bmi_groups = case(
-    when(cov_num_bmi < 18.5).then("Underweight"),
-    when((cov_num_bmi >= 18.5) & (cov_num_bmi < 25.0)).then("Healthy weight (18.5-24.9)"),
-    when((cov_num_bmi >= 25.0) & (cov_num_bmi < 30.0)).then("Overweight (25-29.9)"),
-    when((cov_num_bmi >= 30.0) & (cov_num_bmi < 70.0)).then("Obese (>30)"),
-    default="missing", # assume missing is non-obese
-)
 
 ## Acute myocardial infarction, on or before baseline
 # Primary care
@@ -845,22 +789,42 @@ tmp_cov_bin_chronic_kidney_disease_hes = has_prior_admission(ckd_icd10)
 dataset.cov_bin_chronic_kidney_disease = tmp_cov_bin_chronic_kidney_disease_snomed | tmp_cov_bin_chronic_kidney_disease_hes
 
 
-"""
-    ## 2019 consultation rate
-        cov_num_consulation_rate=patients.with_gp_consultations(
-            between=[days(study_dates["pandemic_start"],-365), days(study_dates["pandemic_start"],-1)],
-            returning="number_of_matches_in_period",
-            return_expectations={
-                "int": {"distribution": "poisson", "mean": 5},
-            },
-        ),
+## BMI, most recent value, within previous 2 years
+bmi_measurement = most_recent_bmi(
+    where=clinical_events.date.is_on_or_between(baseline_date - days(2*366), baseline_date), # double-check if this is working
+    minimum_age_at_measurement=16,
+)
+cov_num_bmi = bmi_measurement.numeric_value
+dataset.cov_cat_bmi_groups = case(
+    when(cov_num_bmi < 18.5).then("Underweight"),
+    when((cov_num_bmi >= 18.5) & (cov_num_bmi < 25.0)).then("Healthy weight (18.5-24.9)"),
+    when((cov_num_bmi >= 25.0) & (cov_num_bmi < 30.0)).then("Overweight (25-29.9)"),
+    when((cov_num_bmi >= 30.0) & (cov_num_bmi < 70.0)).then("Obese (>30)"),
+    default="missing", # assume missing is non-obese
+)
 
-    ## Healthcare worker    
-    cov_bin_healthcare_worker=patients.with_healthcare_worker_flag_on_covid_vaccine_record(
-        returning='binary_flag', 
-        return_expectations={"incidence": 0.01},
-    ),
-"""
+## HbA1c, most recent value, within previous 2 years
+dataset.cov_num_hba1c_mmol_mol = recent_value_2y_ctv3(hba1c_new_codes)
+
+
+
+## Number of consultations in year prior to pandemic (2019)
+dataset.cov_num_consultation_rate = (
+    appointments.where(
+        appointments.status.is_in(["Arrived", "In Progress", "Finished", "Visit", "Waiting", "Patient Walked Out",]))
+        .where(appointments.seen_date.is_on_or_between(studystart_date - days(366),studystart_date)) # the year before the pandemic
+        .count_for_patient()
+)
+
+## Healthcare worker at the time they received a COVID-19 vaccination
+dataset.cov_bin_healthcare_worker = (
+    occupation_on_covid_vaccine_record.where(
+        occupation_on_covid_vaccine_record.is_healthcare_worker.is_not_null())
+        .exists_for_patient()
+)
+
+
+
 
 #######################################################################################
 # INTERVENTION/EXPOSURE variables
