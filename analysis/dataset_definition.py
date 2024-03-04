@@ -808,7 +808,7 @@ dataset.out_covid19_emergency_date = (
     .arrival_date
 )
 
-## Long COVID
+## Long COVID --------- based on https://github.com/opensafely/long-covid/blob/main/analysis/codelists.py
 ## All Long COVID-19 events in primary care
 primary_care_long_covid = clinical_events.where(
     clinical_events.snomedct_code.is_in(
