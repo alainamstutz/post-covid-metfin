@@ -31,6 +31,9 @@ from ehrql.tables.beta.tpp import (
 from databuilder.codes import CTV3Code, ICD10Code # for BMI variable (among others)
 from ehrql.tables.beta import tpp as schema # for BMI variable (among others)
 
+import numpy as np # random seed
+np.random.seed(1928374) # random seed
+
 ## Study definition helper
 import study_definition_helper_functions as helpers
 
@@ -280,7 +283,7 @@ def cause_of_death_matches(codelist):
 # INITIALISE the dataset and set the dummy dataset size
 #######################################################################################
 dataset = create_dataset()
-dataset.configure_dummy_data(population_size=30)
+dataset.configure_dummy_data(population_size=100)
 dataset.baseline_date = baseline_date
 dataset.define_population(patients.exists_for_patient())
 
@@ -404,6 +407,7 @@ tmp_cov_date_t1dm_ctv3 = prior_event_date_ctv3(diabetes_type1_ctv3_clinical)
 tmp_cov_date_t1dm_hes = prior_admission_date(diabetes_type1_icd10)
 # Combined
 cov_date_t1dm = minimum_of(tmp_cov_date_t1dm_ctv3, tmp_cov_date_t1dm_hes)
+dataset.cov_date_t1dm = cov_date_t1dm
 
 # Count of number of records
 # Primary care
@@ -419,6 +423,7 @@ tmp_cov_date_t2dm_ctv3 = prior_event_date_ctv3(diabetes_type2_ctv3_clinical)
 tmp_cov_date_t2dm_hes = prior_admission_date(diabetes_type2_icd10)
 # Combined
 cov_date_t2dm = minimum_of(tmp_cov_date_t2dm_ctv3, tmp_cov_date_t2dm_hes)
+dataset.cov_date_t2dm = cov_date_t2dm
 
 # Count of number of records
 # Primary care
@@ -430,6 +435,7 @@ dataset.tmp_cov_count_t2dm_hes = prior_admissions_count(diabetes_type2_icd10)
 # Date of latest recording
 # Primary care
 cov_date_otherdm = prior_event_date_ctv3(diabetes_other_ctv3_clinical)
+dataset.cov_date_otherdm = cov_date_otherdm
 
 # Count of number of records
 # Primary care
@@ -439,11 +445,13 @@ dataset.tmp_cov_count_otherdm = prior_events_count_ctv3(diabetes_other_ctv3_clin
 # Date of latest recording
 # Primary care
 cov_date_gestationaldm = prior_event_date_ctv3(diabetes_gestational_ctv3_clinical)
+dataset.cov_date_gestationaldm = cov_date_gestationaldm
 
 ### Diabetes diagnostic codes
 # Date of latest recording
 # Primary care
 cov_date_poccdm = prior_event_date_ctv3(diabetes_diagnostic_ctv3_clinical)
+dataset.cov_date_poccdm = cov_date_poccdm
 
 # Count of number of records
 # Primary care
@@ -470,25 +478,25 @@ dataset.tmp_cov_num_max_hba1c_date = (
 )
 #  Diabetes drugs
 tmp_cov_date_insulin_snomed = has_prior_prescription_date(insulin_snomed_clinical)
+dataset.tmp_cov_date_insulin_snomed = tmp_cov_date_insulin_snomed
 tmp_cov_date_antidiabetic_drugs_snomed = has_prior_prescription_date(antidiabetic_drugs_snomed_clinical)
-tmp_cov_date_nonmetform_drugs_snomed = has_prior_prescription_date(non_metformin_dmd) # why is this needed; tmp_cov_date_antidiabetic_drugs_snomed not sufficient?
+dataset.tmp_cov_date_antidiabetic_drugs_snomed = tmp_cov_date_antidiabetic_drugs_snomed
+tmp_cov_date_nonmetform_drugs_snomed = has_prior_prescription_date(non_metformin_dmd) # this extra step makes sense for the diabetes algorithm (otherwise not)
+dataset.tmp_cov_date_nonmetform_drugs_snomed = tmp_cov_date_nonmetform_drugs_snomed
 
-"""
 # Generate variable to identify latest date (in period before baseline_date) that any diabetes medication was prescribed
 tmp_cov_date_diabetes_medication = maximum_of(
     tmp_cov_date_insulin_snomed, 
-    tmp_cov_date_antidiabetic_drugs_snomed) # why excluding tmp_cov_date_nonmetform_drugs_snomed? Is tmp_cov_date_diabetes_medication even needed?
-"""
+    tmp_cov_date_antidiabetic_drugs_snomed) # why excluding tmp_cov_date_nonmetform_drugs_snomed? -> this extra step makes sense for the diabetes algorithm (otherwise not)
 
 # Generate variable to identify latest date (in period before baseline_date) that any diabetes diagnosis codes were recorded
-dataset.tmp_cov_date_first_diabetes_diag = maximum_of( # change name to last
+dataset.tmp_cov_date_latest_diabetes_diag = maximum_of( # changed name to latest
          cov_date_t2dm, 
          cov_date_t1dm,
          cov_date_otherdm,
          cov_date_gestationaldm,
          cov_date_poccdm,
-         tmp_cov_date_insulin_snomed,
-         tmp_cov_date_antidiabetic_drugs_snomed,
+         tmp_cov_date_diabetes_medication,
          tmp_cov_date_nonmetform_drugs_snomed
 )
 
@@ -845,6 +853,7 @@ bmi_measurement = most_recent_bmi(
     minimum_age_at_measurement=16,
 )
 cov_num_bmi = bmi_measurement.numeric_value
+dataset.cov_num_bmi = cov_num_bmi
 dataset.cov_cat_bmi_groups = case(
     when(cov_num_bmi < 18.5).then("Underweight"),
     when((cov_num_bmi >= 18.5) & (cov_num_bmi < 25.0)).then("Healthy weight (18.5-24.9)"),
