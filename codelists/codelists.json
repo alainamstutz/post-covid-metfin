@@ -504,6 +504,60 @@
       "downloaded_at": "2023-12-10 09:55:10.750785Z",
       "sha": "f31feab84ee380583be736e0122aae653af0ba30"
     },
+    "user-alainamstutz-gestational-diabetes-icd10-bristol.csv": {
+      "id": "user/alainamstutz/gestational-diabetes-icd10-bristol/474e7a09",
+      "url": "https://www.opencodelists.org/codelist/user/alainamstutz/gestational-diabetes-icd10-bristol/474e7a09/",
+      "downloaded_at": "2024-03-05 13:41:57.204320Z",
+      "sha": "f5252471f672989c537156c1dcf3a8ffaae6215d"
+    },
+    "user-alainamstutz-pcos-bristol.csv": {
+      "id": "user/alainamstutz/pcos-bristol/796d6073",
+      "url": "https://www.opencodelists.org/codelist/user/alainamstutz/pcos-bristol/796d6073/",
+      "downloaded_at": "2024-03-05 13:41:57.362627Z",
+      "sha": "e71383b9929c60748cf5c135d56ee47045cdaa6e"
+    },
+    "user-alainamstutz-pcos-icd10-bristol.csv": {
+      "id": "user/alainamstutz/pcos-icd10-bristol/605ded3e",
+      "url": "https://www.opencodelists.org/codelist/user/alainamstutz/pcos-icd10-bristol/605ded3e/",
+      "downloaded_at": "2024-03-05 13:41:57.516765Z",
+      "sha": "2f7dc386fda6333e52192d913eb9bed898df19c4"
+    },
+    "user-alainamstutz-diabetes-complications-bristol.csv": {
+      "id": "user/alainamstutz/diabetes-complications-bristol/33a486c0",
+      "url": "https://www.opencodelists.org/codelist/user/alainamstutz/diabetes-complications-bristol/33a486c0/",
+      "downloaded_at": "2024-03-05 17:19:45.268330Z",
+      "sha": "bde887584170c74ff58ecc9c8a83a80b0b348036"
+    },
+    "user-alainamstutz-diabetes-complications-icd10-bristol.csv": {
+      "id": "user/alainamstutz/diabetes-complications-icd10-bristol/1a95138b",
+      "url": "https://www.opencodelists.org/codelist/user/alainamstutz/diabetes-complications-icd10-bristol/1a95138b/",
+      "downloaded_at": "2024-03-05 17:19:45.743589Z",
+      "sha": "4d201ba4c8499adaa8ac34304f28f3b5e5f57931"
+    },
+    "opensafely-glycated-haemoglobin-hba1c-tests.csv": {
+      "id": "opensafely/glycated-haemoglobin-hba1c-tests/2ab11f20",
+      "url": "https://www.opencodelists.org/codelist/opensafely/glycated-haemoglobin-hba1c-tests/2ab11f20/",
+      "downloaded_at": "2024-03-05 20:11:33.273459Z",
+      "sha": "fb9a968b5644c14c570bf2b8708381600f4bd1f5"
+    },
+    "user-alainamstutz-ogtt-bristol.csv": {
+      "id": "user/alainamstutz/ogtt-bristol/0185a056",
+      "url": "https://www.opencodelists.org/codelist/user/alainamstutz/ogtt-bristol/0185a056/",
+      "downloaded_at": "2024-03-05 20:17:56.665621Z",
+      "sha": "0afde2aca2402c8202929a7382d1d17a4f6e575c"
+    },
+    "opensafely-cholesterol-tests-numerical-value.csv": {
+      "id": "opensafely/cholesterol-tests-numerical-value/7e3a22f3",
+      "url": "https://www.opencodelists.org/codelist/opensafely/cholesterol-tests-numerical-value/7e3a22f3/",
+      "downloaded_at": "2024-03-05 20:51:28.940817Z",
+      "sha": "4e90c401f67eca3a3aa716edea013340a6164f44"
+    },
+    "bristol-hdl-cholesterol.csv": {
+      "id": "bristol/hdl-cholesterol/64775990",
+      "url": "https://www.opencodelists.org/codelist/bristol/hdl-cholesterol/64775990/",
+      "downloaded_at": "2024-03-05 20:51:29.306321Z",
+      "sha": "ce9f10f91453a33d5de195b7d02656bf11782760"
+    },
     "opensafely-covid-identification.csv": {
       "id": "opensafely/covid-identification/2020-06-03",
       "url": "https://www.opencodelists.org/codelist/opensafely/covid-identification/2020-06-03/",

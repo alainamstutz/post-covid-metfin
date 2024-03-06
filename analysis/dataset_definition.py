@@ -788,6 +788,56 @@ tmp_cov_bin_chronic_kidney_disease_hes = has_prior_admission(ckd_icd10)
 # Combined
 dataset.cov_bin_chronic_kidney_disease = tmp_cov_bin_chronic_kidney_disease_snomed | tmp_cov_bin_chronic_kidney_disease_hes
 
+### Gestational diabetes
+# Primary care
+tmp_cov_bin_gestationaldm_ctv3 = has_prior_event_ctv3(diabetes_gestational_ctv3_clinical)
+# HES APC
+tmp_cov_bin_gestationaldm_hes = has_prior_admission(gestationaldm_icd10)
+# Combined
+dataset.cov_bin_gestationaldm = tmp_cov_bin_gestationaldm_ctv3 | tmp_cov_bin_gestationaldm_hes
+
+### PCOS
+# Primary care
+tmp_cov_bin_pcos_snomed = has_prior_event_snomed(pcos_snomed_clinical)
+# HES APC
+tmp_cov_bin_pcos_hes = has_prior_admission(pcos_icd10)
+# Combined
+dataset.cov_bin_pcos = tmp_cov_bin_pcos_snomed | tmp_cov_bin_pcos_hes
+
+### Type 1 Diabetes
+# Primary care
+tmp_cov_bin_t1dm_ctv3 = has_prior_event_ctv3(diabetes_type1_ctv3_clinical)
+# HES APC
+tmp_cov_bin_t1dm_hes = has_prior_admission(diabetes_type1_icd10)
+# Combined
+dataset.cov_bin_t1dm = tmp_cov_bin_t1dm_ctv3 | tmp_cov_bin_t1dm_hes
+
+### Diabetes complications (foot, retino, neuro, nephro)
+# Primary care
+tmp_cov_bin_diabetescomp_snomed = has_prior_event_snomed(diabetescomp_snomed_clinical)
+# HES APC
+tmp_cov_bin_diabetescomp_hes = has_prior_admission(diabetescomp_icd10)
+# Combined
+dataset.cov_bin_diabetescomp = tmp_cov_bin_diabetescomp_snomed | tmp_cov_bin_diabetescomp_hes
+
+### Any HbA1c measurement
+# Primary care
+cov_bin_hba1c_measurement = has_prior_event_snomed(hba1c_measurement_snomed)
+
+### Any OGTT done
+# Primary care
+cov_bin_ogtt_measurement = has_prior_event_snomed(ogtt_measurement_snomed)
+
+### Covid-19 vaccination history
+dataset.cov_count_covid_vaccines = (
+  vaccinations
+  .where(vaccinations.target_disease.is_in(["SARS-2 CORONAVIRUS"]))
+  .where(vaccinations.date.is_on_or_before(baseline_date))
+  .count_for_patient()
+)
+
+
+
 
 ## BMI, most recent value, within previous 2 years
 bmi_measurement = most_recent_bmi(
@@ -805,6 +855,13 @@ dataset.cov_cat_bmi_groups = case(
 
 ## HbA1c, most recent value, within previous 2 years
 dataset.cov_num_hba1c_mmol_mol = recent_value_2y_ctv3(hba1c_new_codes)
+
+## Total Cholesterol, most recent value, within previous 2 years
+dataset.tmp_cov_num_cholesterol = recent_value_2y_snomed(cholesterol_snomed)
+
+## HDL Cholesterol, most recent value, within previous 2 years
+dataset.tmp_cov_num_hdl_cholesterol = recent_value_2y_snomed(hdl_cholesterol_snomed)
+
 
 
 
@@ -929,5 +986,5 @@ dataset.out_viral_fatigue_first_date = (
 dataset.death_date = ons_deaths.date
 
 # covid-related death (stated anywhere on any of the 15 death certificate options) # https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/codelists.py uses a different codelist: codelists/opensafely-covid-identification.csv
-dataset.death_cause_covid = cause_of_death_matches(covid_codes_incl_clin_diag)
+dataset.out_death_cause_covid = cause_of_death_matches(covid_codes_incl_clin_diag)
 

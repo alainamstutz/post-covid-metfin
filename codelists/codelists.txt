@@ -117,6 +117,24 @@ user/elsie_horne/liver_disease_snomed/5c978f9c
 user/elsie_horne/ckd_snomed/25d9dcd5
 user/elsie_horne/ckd_icd10/0cca69a0
 
+user/alainamstutz/gestational-diabetes-icd10-bristol/474e7a09
+
+user/alainamstutz/pcos-bristol/796d6073
+user/alainamstutz/pcos-icd10-bristol/605ded3e
+
+user/alainamstutz/diabetes-complications-bristol/33a486c0
+user/alainamstutz/diabetes-complications-icd10-bristol/1a95138b
+
+opensafely/glycated-haemoglobin-hba1c-tests/2ab11f20
+
+user/alainamstutz/ogtt-bristol/0185a056
+
+opensafely/cholesterol-tests-numerical-value/7e3a22f3
+bristol/hdl-cholesterol/64775990
+
+
+
+
 opensafely/covid-identification/2020-06-03
 
 

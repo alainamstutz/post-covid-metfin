@@ -107,7 +107,7 @@ post_viral_fatigue_codes = codelist_from_csv("codelists/user-alex-walker-post-vi
 
 
 #######################################################################################
-# (Other) Potential CONFOUNDER variables
+# Potential CONFOUNDER variables
 #######################################################################################
 # smoking
 smoking_clear = codelist_from_csv("codelists/opensafely-smoking-clear.csv",
@@ -198,6 +198,29 @@ liver_disease_icd10 = codelist_from_csv("codelists/user-elsie_horne-liver_diseas
 # chronic kidney disease
 ckd_snomed_clinical = codelist_from_csv("codelists/user-elsie_horne-ckd_snomed.csv",column="code")
 ckd_icd10 = codelist_from_csv("codelists/user-elsie_horne-ckd_icd10.csv",column="code")
+
+# gestational diabetes ICD10
+gestationaldm_icd10 = codelist_from_csv("codelists/user-alainamstutz-gestational-diabetes-icd10-bristol.csv",column="code")
+
+# PCOS
+pcos_snomed_clinical = codelist_from_csv("codelists/user-alainamstutz-pcos-bristol.csv",column="code")
+pcos_icd10 = codelist_from_csv("codelists/user-alainamstutz-pcos-icd10-bristol.csv",column="code")
+
+# key diabetes complications (foot, retino, neuro, nephro)
+diabetescomp_snomed_clinical = codelist_from_csv("codelists/user-alainamstutz-diabetes-complications-bristol.csv",column="code")
+diabetescomp_icd10 = codelist_from_csv("codelists/user-alainamstutz-diabetes-complications-icd10-bristol.csv",column="code")
+
+# Any HbA1c measurement
+hba1c_measurement_snomed = codelist_from_csv("codelists/opensafely-glycated-haemoglobin-hba1c-tests.csv",column="code")
+
+# Any OGTT done
+ogtt_measurement_snomed = codelist_from_csv("codelists/user-alainamstutz-ogtt-bristol.csv",column="code")
+
+# Total Cholesterol
+cholesterol_snomed = codelist_from_csv("codelists/opensafely-cholesterol-tests-numerical-value.csv",column="code")
+
+# HDL Cholesterol
+hdl_cholesterol_snomed = codelist_from_csv("codelists/bristol-hdl-cholesterol.csv",column="code")
 
 
 #######################################################################################
