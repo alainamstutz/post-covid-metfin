@@ -4,9 +4,16 @@ version: '3.0'
 expectations:
   population_size: 1000
 
+#actions:
+#  generate_dataset:
+#    run: ehrql:v0 generate-dataset analysis/dataset_definition.py --output output/dataset.csv.gz
+#    outputs:
+#      highly_sensitive:
+#        dataset: output/dataset.csv.gz
+
 actions:
   generate_dataset:
-    run: ehrql:v0 generate-dataset analysis/dataset_definition.py --output output/dataset.csv.gz
+    run: ehrql:v0 generate-dataset analysis/dataset_definition.py --output output/dataset.arrow
     outputs:
       highly_sensitive:
-        dataset: output/dataset.csv.gz
+        dataset: output/dataset.arrow

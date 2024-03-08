@@ -1,8 +1,8 @@
 # Load libraries ---------------------------------------------------------------
 tictoc::tic()
-# library(magrittr)
+library(magrittr)
 library(dplyr)
-# library(tidyverse)
+library(tidyverse)
 library(lubridate)
 library(readr)
 library(arrow)
@@ -29,7 +29,10 @@ fs::dir_create(here::here("output", "review"))
 #   here::here("output", "input.feather"), # feather not supported by ehrQL?
 #   #col_select = c(sex, age)
 # )
-df <- read_csv(here::here("output", "dataset.csv"))
+# df <- readr::read_csv(here::here("output", "dataset.csv.gz"))
+
+# read a feather file, decompressed automatically
+df <- arrow::read_feather("output/dataset.arrow")
 message(paste0("Dataset has been read successfully with N = ", nrow(df), " rows"))
 
 # Format columns ---------------------------------------------------------------
@@ -94,18 +97,12 @@ df <- df %>%
   mutate(cov_num_bmi = replace(cov_num_bmi, cov_num_bmi > 70 | cov_num_bmi < 12, NA))
 
 # Define diabetes variable (using Sophie Eastwood algorithm) --------------------
-
-# These vars could not be created in common vars file (also in my case???)
-df <- df %>% mutate(tmp_cov_count_t2dm = tmp_cov_count_t2dm_snomed + tmp_cov_count_t2dm_hes,
-                    tmp_cov_count_t1dm = tmp_cov_count_t1dm_snomed + tmp_cov_count_t1dm_hes)
-print("Diabetes count variables created successfully")
-
-# define variables needed for diabetes algorithm
+# define age-dependent variables needed for step 5 in diabetes algorithm
 df <- df %>%
   mutate(tmp_cov_year_latest_diabetes_diag = format(tmp_cov_date_latest_diabetes_diag,"%Y")) %>%
   mutate(tmp_cov_year_latest_diabetes_diag = as.integer(tmp_cov_year_latest_diabetes_diag),
          age_1st_diag = tmp_cov_year_latest_diabetes_diag - qa_num_birth_year) %>%
-  mutate(age_1st_diag = replace(age_1st_diag, which(age_1st_diag < 0), NA)) %>% # assign negative ages to NA)
+  mutate(age_1st_diag = replace(age_1st_diag, which(age_1st_diag < 0), NA)) %>% # assign negative ages to NA
   mutate(age_under_35_30_1st_diag = ifelse(!is.na(age_1st_diag) &
                                              (age_1st_diag < 35 &
                                                 (cov_cat_ethnicity == 1 | cov_cat_ethnicity == 2  | cov_cat_ethnicity == 5)) |
@@ -113,8 +110,8 @@ df <- df %>%
   # HBA1C date var - earliest date for only those with >=47.5
   mutate(hba1c_date_step7 = as_date(case_when(tmp_cov_num_max_hba1c_mmol_mol >= 47.5 ~ pmin(tmp_cov_num_max_hba1c_date, na.rm = TRUE))),
          # process codes - this is taking the first process code date in those individuals that have 5 or more process codes
-         over5_pocc_step7 = as_date(case_when(tmp_cov_count_poccdm_snomed >= 5 ~ pmin(cov_date_poccdm, na.rm = TRUE))))
-print("Diabetes ad HbA1c variables needed for algorithm created successfully")
+         over5_pocc_step7 = as_date(case_when(tmp_cov_count_poccdm_ctv3 >= 5 ~ pmin(cov_date_poccdm, na.rm = TRUE))))
+print("Diabetes and HbA1c variables needed for algorithm created successfully")
 
 # Applying diabetes algorithm --------------------------------------------------
 scripts_dir <- "analysis"
@@ -124,7 +121,6 @@ print("Diabetes algorithm run successfully")
 print(paste0(nrow(df), " rows in df after diabetes algo"))
 
 # Restrict columns and save analysis dataset ---------------------------------
-
 df1 <- df%>% select(patient_id,"death_date",starts_with("index_date_"),
                     has_follow_up_previous_6months,
                     dereg_date,
@@ -140,7 +136,6 @@ df1 <- df%>% select(patient_id,"death_date",starts_with("index_date_"),
                     contains("vax_cat_")# Vaccination products
 )
 
-
 df1[,colnames(df)[grepl("tmp_",colnames(df))]] <- NULL
 
 saveRDS(df1, file = paste0("output/input_",cohort_name,".rds"))
@@ -148,17 +143,14 @@ saveRDS(df1, file = paste0("output/input_",cohort_name,".rds"))
 message(paste0("Input data saved successfully with N = ", nrow(df1), " rows"))
 
 # Describe data --------------------------------------------------------------
-
 sink(paste0("output/not-for-review/describe_input_",cohort_name,"_stage0.txt"))
 print(Hmisc::describe(df1))
 sink()
 
 # Restrict columns and save Venn diagram input dataset -----------------------
-
 df2 <- df %>% select(starts_with(c("patient_id","tmp_out_date","out_date")))
 
 # Describe data --------------------------------------------------------------
-
 sink(paste0("output/not-for-review/describe_venn_",cohort_name,".txt"))
 print(Hmisc::describe(df2))
 sink()

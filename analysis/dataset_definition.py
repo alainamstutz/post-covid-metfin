@@ -402,7 +402,8 @@ dataset.cov_cat_region = (
 ### Type 1 Diabetes
 # Date of latest recording
 # Primary care
-tmp_cov_date_t1dm_ctv3 = prior_event_date_ctv3(diabetes_type1_ctv3_clinical)
+tmp_cov_date_t1dm_ctv3 = prior_event_date_ctv3(diabetes_type1_ctv3_clinical) # changed name to ctv3
+dataset.tmp_cov_date_t1dm_ctv3 = tmp_cov_date_t1dm_ctv3
 # HES APC
 tmp_cov_date_t1dm_hes = prior_admission_date(diabetes_type1_icd10)
 # Combined
@@ -411,14 +412,19 @@ dataset.cov_date_t1dm = cov_date_t1dm
 
 # Count of number of records
 # Primary care
-dataset.tmp_cov_count_t1dm_snomed = prior_events_count_ctv3(diabetes_type1_ctv3_clinical) # change name to ctv3
+tmp_cov_count_t1dm_ctv3 = prior_events_count_ctv3(diabetes_type1_ctv3_clinical) # changed name to ctv3
+dataset.tmp_cov_count_t1dm_ctv3 = tmp_cov_count_t1dm_ctv3
 # HES APC
-dataset.tmp_cov_count_t1dm_hes = prior_admissions_count(diabetes_type1_icd10)
+tmp_cov_count_t1dm_hes = prior_admissions_count(diabetes_type1_icd10)
+dataset.tmp_cov_count_t1dm_hes = tmp_cov_count_t1dm_hes
+# Combined
+dataset.tmp_cov_count_t1dm = tmp_cov_count_t1dm_ctv3 + tmp_cov_count_t1dm_hes
 
 ### Type 2 Diabetes
 # Date of latest recording
 # Primary care
-tmp_cov_date_t2dm_ctv3 = prior_event_date_ctv3(diabetes_type2_ctv3_clinical)
+tmp_cov_date_t2dm_ctv3 = prior_event_date_ctv3(diabetes_type2_ctv3_clinical) # change name to ctv3
+dataset.tmp_cov_date_t2dm_ctv3 = tmp_cov_date_t2dm_ctv3
 # HES APC
 tmp_cov_date_t2dm_hes = prior_admission_date(diabetes_type2_icd10)
 # Combined
@@ -427,9 +433,13 @@ dataset.cov_date_t2dm = cov_date_t2dm
 
 # Count of number of records
 # Primary care
-dataset.tmp_cov_count_t2dm_snomed = prior_events_count_ctv3(diabetes_type2_ctv3_clinical) # change name to ctv3
+tmp_cov_count_t2dm_ctv3 = prior_events_count_ctv3(diabetes_type2_ctv3_clinical) # change name to ctv3
+dataset.tmp_cov_count_t2dm_ctv3 = tmp_cov_count_t2dm_ctv3
 # HES APC
-dataset.tmp_cov_count_t2dm_hes = prior_admissions_count(diabetes_type2_icd10)
+tmp_cov_count_t2dm_hes = prior_admissions_count(diabetes_type2_icd10)
+dataset.tmp_cov_count_t2dm_hes = tmp_cov_count_t2dm_hes
+# Combined
+dataset.tmp_cov_count_t2dm = tmp_cov_count_t2dm_ctv3 + tmp_cov_count_t2dm_hes
 
 ### Diabetes unspecified/other
 # Date of latest recording
@@ -439,7 +449,7 @@ dataset.cov_date_otherdm = cov_date_otherdm
 
 # Count of number of records
 # Primary care
-dataset.tmp_cov_count_otherdm = prior_events_count_ctv3(diabetes_other_ctv3_clinical) # change name to ctv3
+dataset.tmp_cov_count_otherdm = prior_events_count_ctv3(diabetes_other_ctv3_clinical)
 
 ### Gestational diabetes
 # Date of latest recording
@@ -455,7 +465,7 @@ dataset.cov_date_poccdm = cov_date_poccdm
 
 # Count of number of records
 # Primary care
-dataset.tmp_cov_count_poccdm_snomed = prior_events_count_ctv3(diabetes_diagnostic_ctv3_clinical) # change name to ctv3
+dataset.tmp_cov_count_poccdm_ctv3 = prior_events_count_ctv3(diabetes_diagnostic_ctv3_clinical) # changed name to ctv3
 
 ### Other variables needed to define diabetes
 # Maximum HbA1c measure (in period before baseline_date) // or only back 2 years (then use function)
@@ -488,6 +498,7 @@ dataset.tmp_cov_date_nonmetform_drugs_snomed = tmp_cov_date_nonmetform_drugs_sno
 tmp_cov_date_diabetes_medication = maximum_of(
     tmp_cov_date_insulin_snomed, 
     tmp_cov_date_antidiabetic_drugs_snomed) # why excluding tmp_cov_date_nonmetform_drugs_snomed? -> this extra step makes sense for the diabetes algorithm (otherwise not)
+dataset.tmp_cov_date_diabetes_medication = tmp_cov_date_diabetes_medication
 
 # Generate variable to identify latest date (in period before baseline_date) that any diabetes diagnosis codes were recorded
 dataset.tmp_cov_date_latest_diabetes_diag = maximum_of( # changed name to latest
