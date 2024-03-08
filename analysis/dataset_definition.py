@@ -283,7 +283,7 @@ def cause_of_death_matches(codelist):
 # INITIALISE the dataset and set the dummy dataset size
 #######################################################################################
 dataset = create_dataset()
-dataset.configure_dummy_data(population_size=100)
+dataset.configure_dummy_data(population_size=1000)
 dataset.baseline_date = baseline_date
 dataset.define_population(patients.exists_for_patient())
 
@@ -357,7 +357,7 @@ dataset.qa_bin_prostate_cancer = case(
 #######################################################################################
 
 ## sex
-dataset.cov_cat_sex = patients.sex.is_in(["female", "male"])
+dataset.cov_cat_sex = patients.sex
 
 ## age
 dataset.cov_num_age = patients.age_on(baseline_date)
@@ -553,7 +553,7 @@ dataset.cov_bin_hosp_baseline = (
 
 ## Metformin use at baseline, defined as receiving a metformin prescription up until 6 months prior to baseline date (assuming half-yearly prescription for stable diabetes across GPs in the UK)
 dataset.cov_bin_metfin_before_baseline = has_prior_prescription_6m(metformin_codes) # https://www.opencodelists.org/codelist/user/john-tazare/metformin-dmd/48e43356/
-dataset.cov_bin_metfin_before_baseline_date = has_prior_prescription_6m_date(metformin_codes)
+dataset.cov_date_metfin_before_baseline = has_prior_prescription_6m_date(metformin_codes)
 
 ## Known hypersensitivity / intolerance to metformin, on or before baseline
 dataset.cov_bin_metfin_allergy = has_prior_event_snomed(metformin_allergy) 
@@ -579,7 +579,7 @@ dataset.cov_bin_liver_cirrhosis = tmp_cov_bin_liver_cirrhosis_snomed | tmp_cov_b
 
 ## Use of the following medications in the last 14 days (drug-drug interaction with metformin)
 dataset.cov_bin_metfin_interaction = has_prior_prescription_14d(metformin_interaction_codes) 
-dataset.cov_bin_metfin_interaction_date = has_prior_prescription_14d_date(metformin_interaction_codes)
+dataset.cov_date_metfin_interaction = has_prior_prescription_14d_date(metformin_interaction_codes)
 
 ## Prior Long COVID diagnosis, based on https://github.com/opensafely/long-covid/blob/main/analysis/codelists.py
 ## All Long COVID-19 events in primary care
@@ -595,7 +595,7 @@ dataset.cov_bin_long_covid = (
     primary_care_long_covid.where(clinical_events.date.is_on_or_before(baseline_date))
     .exists_for_patient()
 )
-dataset.cov_bin_long_covid_date = (
+dataset.cov_date_long_covid = (
     primary_care_long_covid.where(clinical_events.date.is_on_or_before(baseline_date))
     .sort_by(clinical_events.date)
     .last_for_patient()
@@ -807,6 +807,7 @@ tmp_cov_bin_chronic_kidney_disease_hes = has_prior_admission(ckd_icd10)
 # Combined
 dataset.cov_bin_chronic_kidney_disease = tmp_cov_bin_chronic_kidney_disease_snomed | tmp_cov_bin_chronic_kidney_disease_hes
 
+""" extract from the diabetes algo
 ### Gestational diabetes
 # Primary care
 tmp_cov_bin_gestationaldm_ctv3 = has_prior_event_ctv3(diabetes_gestational_ctv3_clinical)
@@ -814,6 +815,7 @@ tmp_cov_bin_gestationaldm_ctv3 = has_prior_event_ctv3(diabetes_gestational_ctv3_
 tmp_cov_bin_gestationaldm_hes = has_prior_admission(gestationaldm_icd10)
 # Combined
 dataset.cov_bin_gestationaldm = tmp_cov_bin_gestationaldm_ctv3 | tmp_cov_bin_gestationaldm_hes
+"""
 
 ### PCOS
 # Primary care
@@ -823,6 +825,7 @@ tmp_cov_bin_pcos_hes = has_prior_admission(pcos_icd10)
 # Combined
 dataset.cov_bin_pcos = tmp_cov_bin_pcos_snomed | tmp_cov_bin_pcos_hes
 
+""" extract from the diabetes algo
 ### Type 1 Diabetes
 # Primary care
 tmp_cov_bin_t1dm_ctv3 = has_prior_event_ctv3(diabetes_type1_ctv3_clinical)
@@ -830,6 +833,7 @@ tmp_cov_bin_t1dm_ctv3 = has_prior_event_ctv3(diabetes_type1_ctv3_clinical)
 tmp_cov_bin_t1dm_hes = has_prior_admission(diabetes_type1_icd10)
 # Combined
 dataset.cov_bin_t1dm = tmp_cov_bin_t1dm_ctv3 | tmp_cov_bin_t1dm_hes
+"""
 
 ### Diabetes complications (foot, retino, neuro, nephro)
 # Primary care
@@ -841,11 +845,11 @@ dataset.cov_bin_diabetescomp = tmp_cov_bin_diabetescomp_snomed | tmp_cov_bin_dia
 
 ### Any HbA1c measurement
 # Primary care
-cov_bin_hba1c_measurement = has_prior_event_snomed(hba1c_measurement_snomed)
+dataset.cov_bin_hba1c_measurement = has_prior_event_snomed(hba1c_measurement_snomed)
 
 ### Any OGTT done
 # Primary care
-cov_bin_ogtt_measurement = has_prior_event_snomed(ogtt_measurement_snomed)
+dataset.cov_bin_ogtt_measurement = has_prior_event_snomed(ogtt_measurement_snomed)
 
 ### Covid-19 vaccination history
 dataset.cov_count_covid_vaccines = (
@@ -857,10 +861,9 @@ dataset.cov_count_covid_vaccines = (
 
 
 
-
 ## BMI, most recent value, within previous 2 years
 bmi_measurement = most_recent_bmi(
-    where=clinical_events.date.is_on_or_between(baseline_date - days(2*366), baseline_date), # double-check if this is working
+    where=clinical_events.date.is_after(baseline_date - days(2 * 366)),
     minimum_age_at_measurement=16,
 )
 cov_num_bmi = bmi_measurement.numeric_value
@@ -881,7 +884,6 @@ dataset.tmp_cov_num_cholesterol = recent_value_2y_snomed(cholesterol_snomed)
 
 ## HDL Cholesterol, most recent value, within previous 2 years
 dataset.tmp_cov_num_hdl_cholesterol = recent_value_2y_snomed(hdl_cholesterol_snomed)
-
 
 
 
@@ -931,14 +933,14 @@ dataset.exp_count_metfin = (
 
 ## COVID infection
 # First COVID-19 code (diagnosis, positive test or sequelae) in primary care, after baseline date
-tmp_out_covid19_primary_care_date = (
+tmp_out_date_covid19_primary_care = (
     primary_care_covid_events.where(clinical_events.date.is_on_or_after(baseline_date)) # details re primary_care_covid_events see # DEFINE the baseline date based on SARS-CoV-2 infection
     .sort_by(clinical_events.date)
     .first_for_patient()
     .date
 )
 # First positive SARS-COV-2 PCR, after baseline date
-tmp_out_covid19_sgss_date = (
+tmp_out_date_covid19_sgss = (
     sgss_covid_all_tests.where(
         sgss_covid_all_tests.is_positive.is_not_null()) # double-check with https://docs.opensafely.org/ehrql/reference/schemas/beta.tpp/#sgss_covid_all_tests
         .where(sgss_covid_all_tests.lab_report_date.is_on_or_after(baseline_date))
@@ -947,17 +949,17 @@ tmp_out_covid19_sgss_date = (
         .lab_report_date
 )
 # First covid-19 related hospital admission, after baseline date
-tmp_out_covid19_hes_date = (
+tmp_out_date_covid19_hes = (
     hospital_admissions.where(hospital_admissions.all_diagnoses.is_in(covid_codes_incl_clin_diag)) # includes the only clinically diagnosed cases: https://www.opencodelists.org/codelist/opensafely/covid-identification/2020-06-03/
     .where(hospital_admissions.admission_date.is_on_or_after(baseline_date))
     .sort_by(hospital_admissions.admission_date)
     .first_for_patient()
     .admission_date
 )
-dataset.out_covid19_date = minimum_of(tmp_out_covid19_primary_care_date, tmp_out_covid19_sgss_date, tmp_out_covid19_hes_date)
+dataset.out_date_covid19 = minimum_of(tmp_out_date_covid19_primary_care, tmp_out_date_covid19_sgss, tmp_out_date_covid19_hes)
 
 # Emergency attendance for covid, after baseline date // probably incorporate into above
-dataset.out_covid19_emergency_date = (
+dataset.out_date_covid19_emergency = (
     emergency_diagnosis_matches(covid_emergency)
     .where(emergency_care_attendances.arrival_date.is_on_or_after(baseline_date))
     .sort_by(emergency_care_attendances.arrival_date)
@@ -975,25 +977,25 @@ primary_care_long_covid = clinical_events.where(
     )
 )
 # Any Long COVID code in primary care after baseline date
-dataset.out_long_covid = (
+dataset.out_bin_long_covid = (
     primary_care_long_covid.where(clinical_events.date.is_on_or_after(baseline_date))
     .exists_for_patient()
 )
 # First Long COVID code in primary care after baseline date
-dataset.out_long_covid_first_date = (
+dataset.out_date_long_covid_first = (
     primary_care_long_covid.where(clinical_events.date.is_on_or_after(baseline_date))
     .sort_by(clinical_events.date)
     .first_for_patient()
     .date
 )
 # Any viral fatigue code in primary care after baseline date
-dataset.out_viral_fatigue = (
+dataset.out_bin_viral_fatigue = (
     clinical_events.where(clinical_events.snomedct_code.is_in(post_viral_fatigue_codes))
     .where(clinical_events.date.is_on_or_after(baseline_date))
     .exists_for_patient()
 )
 # First viral fatigue code in primary care after baseline date
-dataset.out_viral_fatigue_first_date = (
+dataset.out_date_viral_fatigue_first = (
     clinical_events.where(clinical_events.snomedct_code.is_in(post_viral_fatigue_codes))
     .where(clinical_events.date.is_on_or_after(baseline_date))
     .sort_by(clinical_events.date)
@@ -1006,5 +1008,9 @@ dataset.out_viral_fatigue_first_date = (
 dataset.death_date = ons_deaths.date
 
 # covid-related death (stated anywhere on any of the 15 death certificate options) # https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/codelists.py uses a different codelist: codelists/opensafely-covid-identification.csv
-dataset.out_death_cause_covid = cause_of_death_matches(covid_codes_incl_clin_diag)
-
+tmp_out_bin_death_cause_covid = cause_of_death_matches(covid_codes_incl_clin_diag)
+# add default F
+dataset.out_bin_death_cause_covid = case(
+    when(tmp_out_bin_death_cause_covid).then(True),
+    default=False
+)

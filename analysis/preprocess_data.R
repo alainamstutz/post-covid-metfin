@@ -25,12 +25,6 @@ fs::dir_create(here::here("output", "not-for-review"))
 fs::dir_create(here::here("output", "review"))
 
 # Read cohort dataset ----------------------------------------------------------
-# df_input <- arrow::read_feather(
-#   here::here("output", "input.feather"), # feather not supported by ehrQL?
-#   #col_select = c(sex, age)
-# )
-# df <- readr::read_csv(here::here("output", "dataset.csv.gz"))
-
 # read a feather file, decompressed automatically
 df <- arrow::read_feather("output/dataset.arrow")
 message(paste0("Dataset has been read successfully with N = ", nrow(df), " rows"))
@@ -52,7 +46,12 @@ print(Hmisc::describe(df))
 sink()
 message ("Cohort ",cohort_name, " description written successfully!")
 
-#Combine BMI variables to create one history of obesity variable ---------------
+# BMI values -------------------------------------------------------------------
+# Remove biologically implausible: BMI numerical (for table 1 only to 12 min and 70 max)
+df <- df %>%
+  mutate(cov_num_bmi = replace(cov_num_bmi, cov_num_bmi > 70 | cov_num_bmi < 12, NA))
+
+# Combine BMI variables to create one history of obesity variable
 df$cov_bin_obesity <- ifelse(df$cov_bin_obesity == TRUE |
                                df$cov_cat_bmi_groups=="Obese",TRUE,FALSE)
 
@@ -76,7 +75,7 @@ df <- df %>%
 # df[,c("sub_date_covid19_hospital")] <- NULL
 # message("COVID19 severity determined successfully")
 
-# TC/HDL ratio values --------------------------
+# TC/HDL ratio values ----------------------------------------------------------
 # Remove biologically implausible: https://doi.org/10.1093/ije/dyz099
 # remove TC < 1.75 or > 20
 # remove HDL < 0.4 or > 5
@@ -91,13 +90,8 @@ df$cov_num_tc_hdl_ratio[is.infinite(df$cov_num_tc_hdl_ratio)] <- NA
 print("Cholesterol ratio variable created successfully and QC'd")
 summary(df$cov_num_tc_hdl_ratio)
 
-# BMI values -----------------------------------
-# Remove biologically implausible: BMI numerical (for table 1 only to 12 min and 70 max)
-df <- df %>%
-  mutate(cov_num_bmi = replace(cov_num_bmi, cov_num_bmi > 70 | cov_num_bmi < 12, NA))
-
-# Define diabetes variable (using Sophie Eastwood algorithm) --------------------
-# define age-dependent variables needed for step 5 in diabetes algorithm
+# Define diabetes variables (using Sophie Eastwood algorithm) -------------------
+# First, define age-dependent variables needed for step 5 in diabetes algorithm
 df <- df %>%
   mutate(tmp_cov_year_latest_diabetes_diag = format(tmp_cov_date_latest_diabetes_diag,"%Y")) %>%
   mutate(tmp_cov_year_latest_diabetes_diag = as.integer(tmp_cov_year_latest_diabetes_diag),
@@ -113,27 +107,35 @@ df <- df %>%
          over5_pocc_step7 = as_date(case_when(tmp_cov_count_poccdm_ctv3 >= 5 ~ pmin(cov_date_poccdm, na.rm = TRUE))))
 print("Diabetes and HbA1c variables needed for algorithm created successfully")
 
-# Applying diabetes algorithm --------------------------------------------------
+# Second, apply the diabetes algorithm
 scripts_dir <- "analysis"
 source(file.path(scripts_dir,"diabetes_algorithm.R"))
 df <- diabetes_algo(df)
 print("Diabetes algorithm run successfully")
 print(paste0(nrow(df), " rows in df after diabetes algo"))
 
-# Restrict columns and save analysis dataset ---------------------------------
+# Third, create the separate T1DM, T2DM and GDM variables
+df <- df %>% mutate(cov_bin_t2dm = case_when(cov_cat_diabetes == "T2DM" ~ T, TRUE ~ F))
+df <- df %>% mutate(cov_bin_t1dm = case_when(cov_cat_diabetes == "T1DM" ~ T, TRUE ~ F))
+df <- df %>% mutate(cov_bin_gestationaldm = case_when(cov_cat_diabetes == "GDM" ~ T, TRUE ~ F))
+
+
+
+
+# Restrict columns and save analysis dataset -----------------------------------
 df1 <- df%>% select(patient_id,"death_date",starts_with("index_date_"),
                     has_follow_up_previous_6months,
                     dereg_date,
                     starts_with("end_date_"),
-                    contains("sub_"), # Subgroups
+                    # contains("sub_"), # Subgroups
                     contains("exp_"), # Exposures
                     contains("out_"), # Outcomes
                     contains("cov_"), # Covariates
                     contains("qa_"), #quality assurance
                     contains("step"), # diabetes steps
-                    contains("vax_date_eligible"), # Vaccination eligibility
-                    contains("vax_date_"), # Vaccination dates and vax type
-                    contains("vax_cat_")# Vaccination products
+                    # contains("vax_date_eligible"), # Vaccination eligibility
+                    # contains("vax_date_"), # Vaccination dates and vax type
+                    # contains("vax_cat_")# Vaccination products
 )
 
 df1[,colnames(df)[grepl("tmp_",colnames(df))]] <- NULL
