@@ -283,7 +283,7 @@ def cause_of_death_matches(codelist):
 # INITIALISE the dataset and set the dummy dataset size
 #######################################################################################
 dataset = create_dataset()
-dataset.configure_dummy_data(population_size=1000)
+dataset.configure_dummy_data(population_size=100)
 dataset.baseline_date = baseline_date
 dataset.define_population(patients.exists_for_patient())
 

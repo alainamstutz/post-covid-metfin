@@ -13,6 +13,7 @@ print(R.version.string)
 # Specify command arguments ----------------------------------------------------
 args <- commandArgs(trailingOnly=TRUE)
 print(length(args))
+
 if(length(args)==0){
   # use for interactive testing
   cohort_name <- "firstmonth"
@@ -118,46 +119,43 @@ print(paste0(nrow(df), " rows in df after diabetes algo"))
 df <- df %>% mutate(cov_bin_t2dm = case_when(cov_cat_diabetes == "T2DM" ~ T, TRUE ~ F))
 df <- df %>% mutate(cov_bin_t1dm = case_when(cov_cat_diabetes == "T1DM" ~ T, TRUE ~ F))
 df <- df %>% mutate(cov_bin_gestationaldm = case_when(cov_cat_diabetes == "GDM" ~ T, TRUE ~ F))
+# table(df1$cov_cat_diabetes)
 
-
-
-
-# Restrict columns and save analysis dataset -----------------------------------
-df1 <- df%>% select(patient_id,"death_date",starts_with("index_date_"),
-                    has_follow_up_previous_6months,
-                    dereg_date,
-                    starts_with("end_date_"),
+# Restrict columns and save analysis dataset df1 -------------------------------
+df1 <- df%>% select(patient_id,
+                    baseline_date,
+                    # "death_date",
+                    # starts_with("index_date_"),
+                    # has_follow_up_previous_6months,
+                    # dereg_date,
+                    # starts_with("end_date_"),
                     # contains("sub_"), # Subgroups
-                    contains("exp_"), # Exposures
-                    contains("out_"), # Outcomes
-                    contains("cov_"), # Covariates
-                    contains("qa_"), #quality assurance
+                    starts_with("exp_"), # Exposures
+                    starts_with("out_"), # Outcomes
+                    starts_with("cov_"), # Covariates
+                    starts_with("qa_"), # Quality assurance
                     contains("step"), # diabetes steps
                     # contains("vax_date_eligible"), # Vaccination eligibility
                     # contains("vax_date_"), # Vaccination dates and vax type
                     # contains("vax_cat_")# Vaccination products
 )
 
-df1[,colnames(df)[grepl("tmp_",colnames(df))]] <- NULL
-
 saveRDS(df1, file = paste0("output/input_",cohort_name,".rds"))
-
 message(paste0("Input data saved successfully with N = ", nrow(df1), " rows"))
 
-# Describe data --------------------------------------------------------------
+# Describe data df 1------------------------------------------------------------
 sink(paste0("output/not-for-review/describe_input_",cohort_name,"_stage0.txt"))
 print(Hmisc::describe(df1))
 sink()
 
-# Restrict columns and save Venn diagram input dataset -----------------------
-df2 <- df %>% select(starts_with(c("patient_id","tmp_out_date","out_date")))
+# Restrict columns and save Venn diagram input dataset -------------------------
+df2 <- df %>% select(starts_with(c("patient_id","tmp_cov_date","cov_date")))
 
-# Describe data --------------------------------------------------------------
+# Describe data Venn diagram input dataset  ------------------------------------
 sink(paste0("output/not-for-review/describe_venn_",cohort_name,".txt"))
 print(Hmisc::describe(df2))
 sink()
-
 saveRDS(df2, file = paste0("output/venn_",cohort_name,".rds"))
-
 message("Venn diagram data saved successfully")
+
 tictoc::toc()
