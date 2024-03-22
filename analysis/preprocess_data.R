@@ -27,7 +27,7 @@ fs::dir_create(here::here("output", "review"))
 
 # Read cohort dataset ----------------------------------------------------------
 # read a feather file, decompressed automatically
-df <- arrow::read_feather("output/dataset.arrow")
+df <- arrow::read_feather("output/extracts/dataset.arrow")
 message(paste0("Dataset has been read successfully with N = ", nrow(df), " rows"))
 
 # Format columns ---------------------------------------------------------------
@@ -77,9 +77,10 @@ df <- df %>%
 # message("COVID19 severity determined successfully")
 
 # TC/HDL ratio values ----------------------------------------------------------
-# Remove biologically implausible: https://doi.org/10.1093/ije/dyz099
-# remove TC < 1.75 or > 20
-# remove HDL < 0.4 or > 5
+
+## Remove biologically implausible: https://doi.org/10.1093/ije/dyz099
+## remove TC < 1.75 or > 20
+## remove HDL < 0.4 or > 5
 df <- df %>%
   mutate(tmp_cov_num_cholesterol = replace(tmp_cov_num_cholesterol, tmp_cov_num_cholesterol < 1.75 | tmp_cov_num_cholesterol > 20, NA),
          tmp_cov_num_hdl_cholesterol = replace(tmp_cov_num_hdl_cholesterol, tmp_cov_num_hdl_cholesterol < 0.4 | tmp_cov_num_hdl_cholesterol > 5, NA)) %>%
@@ -92,7 +93,7 @@ print("Cholesterol ratio variable created successfully and QC'd")
 summary(df$cov_num_tc_hdl_ratio)
 
 # Define diabetes variables (using Sophie Eastwood algorithm) -------------------
-# First, define age-dependent variables needed for step 5 in diabetes algorithm
+## First, define age-dependent variables needed for step 5 in diabetes algorithm
 df <- df %>%
   mutate(tmp_cov_year_latest_diabetes_diag = format(tmp_cov_date_latest_diabetes_diag,"%Y")) %>%
   mutate(tmp_cov_year_latest_diabetes_diag = as.integer(tmp_cov_year_latest_diabetes_diag),
@@ -108,17 +109,16 @@ df <- df %>%
          over5_pocc_step7 = as_date(case_when(tmp_cov_count_poccdm_ctv3 >= 5 ~ pmin(cov_date_poccdm, na.rm = TRUE))))
 print("Diabetes and HbA1c variables needed for algorithm created successfully")
 
-# Second, apply the diabetes algorithm
+## Second, apply the diabetes algorithm
 scripts_dir <- "analysis"
 source(file.path(scripts_dir,"diabetes_algorithm.R"))
 df <- diabetes_algo(df)
 print("Diabetes algorithm run successfully")
 print(paste0(nrow(df), " rows in df after diabetes algo"))
 
-# Third, create the separate T1DM, T2DM and GDM variables
+# Third, extract T2DM as a separate variable
 df <- df %>% mutate(cov_bin_t2dm = case_when(cov_cat_diabetes == "T2DM" ~ T, TRUE ~ F))
-df <- df %>% mutate(cov_bin_t1dm = case_when(cov_cat_diabetes == "T1DM" ~ T, TRUE ~ F))
-df <- df %>% mutate(cov_bin_gestationaldm = case_when(cov_cat_diabetes == "GDM" ~ T, TRUE ~ F))
+
 # table(df1$cov_cat_diabetes)
 
 # Restrict columns and save analysis dataset df1 -------------------------------
@@ -134,7 +134,7 @@ df1 <- df%>% select(patient_id,
                     starts_with("out_"), # Outcomes
                     starts_with("cov_"), # Covariates
                     starts_with("qa_"), # Quality assurance
-                    contains("step"), # diabetes steps
+                    # contains("step"), # diabetes steps
                     # contains("vax_date_eligible"), # Vaccination eligibility
                     # contains("vax_date_"), # Vaccination dates and vax type
                     # contains("vax_cat_")# Vaccination products

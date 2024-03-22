@@ -28,20 +28,17 @@ if(length(args)==0){
 fs::dir_create(here::here("output", "not-for-review"))
 fs::dir_create(here::here("output", "review", "descriptives"))
 
-# #json file containing vax study dates
-# study_dates <- fromJSON("output/study_dates.json")
+#json file containing vax study dates
+study_dates <- fromJSON("output/study_dates.json")
 
+#vaccination program start date
+vax_start_date<-as.Date(study_dates$vax1_earliest, format="%Y-%m-%d")
 
-
-# #vaccination program start date
-# vax_start_date<-as.Date(study_dates$vax1_earliest, format="%Y-%m-%d")
-#
-# #reference date for mixed vaccine products
-# mixed_vax_threshold<-as.Date("2021-05-07")
-# #read date variables from json file
-# start_date_delta = as.Date(study_dates$delta_date, format="%Y-%m-%d")
-# end_date_delta = as.Date(study_dates$omicron_date, format="%Y-%m-%d")
-
+#reference date for mixed vaccine products
+mixed_vax_threshold<-as.Date("2021-05-07")
+#read date variables from json file
+start_date_delta = as.Date(study_dates$delta_date, format="%Y-%m-%d")
+end_date_delta = as.Date(study_dates$omicron_date, format="%Y-%m-%d")
 
 
 stage1 <- function(cohort_name, group){

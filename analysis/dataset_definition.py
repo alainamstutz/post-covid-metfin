@@ -48,15 +48,23 @@ from codelists import *
 ## datetime function
 from datetime import date ## needed?
 
+## to import json files (for the dates)
+import json
+from pathlib import Path
+
 
 #######################################################################################
-# DEFINE the dates
+# DEFINE the dates: Import study dates defined in "study-dates.R" and exported to JSON
 #######################################################################################
-studystart_date = "2020-01-01" # start of the pandemic
-studyend_date = "2022-04-01" # end of mass testing
-followupend_date = "2023-04-30" # end of follow-up / to be defined
-vaccine_peak_date = "2021-06-18" # to stratify analysis / to be discussed
-# add sub-cohort dates, to replace studystart_date & studyend_date for each sub-cohort
+study_dates = json.loads(
+    Path("analysis/design/study-dates.json").read_text(),
+)
+# Change these in ./lib/design/study-dates.R if necessary
+studystart_date = study_dates["studystart_date"]
+studyend_date = study_dates["studyend_date"]
+followupend_date = study_dates["followupend_date"]
+vaccine_peak_date = study_dates["vaccine_peak_date"]
+# add sub-cohort dates, to replace studystart_date & studyend_date for each sub-cohort?
 
 #######################################################################################
 # DEFINE the baseline date based on SARS-CoV-2 infection
@@ -99,7 +107,6 @@ tmp_covid19_hes_date = (
 
 ### Define (first) baseline date within recruitment period (within each sub-cohort)
 baseline_date = minimum_of(tmp_covid19_primary_care_date, tmp_covid19_sgss_date)
-
 
 #######################################################################################
 # FUNCTIONS (all based on baseline_date)
@@ -362,6 +369,9 @@ dataset.cov_cat_sex = patients.sex
 ## age
 dataset.cov_num_age = patients.age_on(baseline_date)
 
+### Age on 1 January 2020, for eligiblity definition 
+dataset.age_jan2020 = patients.age_on("2020-01-01")
+
 ## ethnicity in 6 categories based on codelists/opensafely-ethnicity.csv only. https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/codelists.py  
 dataset.cov_cat_ethnicity = (
     clinical_events.where(clinical_events.ctv3_code.is_in(ethnicity_codes))
@@ -371,8 +381,9 @@ dataset.cov_cat_ethnicity = (
 )
 
 ## Deprivation
+# Index of Multiple Deprevation Rank (rounded down to nearest 100)
 imd_rounded = addresses.for_patient_on(baseline_date).imd_rounded
-dataset.cov_cat_deprivation = case(
+dataset.cov_cat_deprivation_10 = case(
     when((imd_rounded >=0) & (imd_rounded < int(32844 * 1 / 10))).then("1 (most deprived)"),
     when(imd_rounded < int(32844 * 2 / 10)).then("2"),
     when(imd_rounded < int(32844 * 3 / 10)).then("3"),
@@ -386,11 +397,23 @@ dataset.cov_cat_deprivation = case(
     default="unknown"
 )
 
+dataset.cov_cat_deprivation_5 = case(
+    when((imd_rounded >=0) & (imd_rounded < int(32844 * 1 / 5))).then("1 (most deprived)"),
+    when(imd_rounded < int(32844 * 2 / 5)).then("2"),
+    when(imd_rounded < int(32844 * 3 / 5)).then("3"),
+    when(imd_rounded < int(32844 * 4 / 5)).then("4"),
+    when(imd_rounded < int(32844 * 5 / 5)).then("5 (least deprived)"),
+    default="unknown"
+)
+
 ## Region
 dataset.cov_cat_region = (
     practice_registrations.for_patient_on(baseline_date)
     .practice_nuts1_region_name
 )
+
+## Rurality
+dataset.cov_cat_rural_urban = addresses.for_patient_on(baseline_date).rural_urban_classification
 
 
 #######################################################################################
@@ -807,17 +830,15 @@ tmp_cov_bin_chronic_kidney_disease_hes = has_prior_admission(ckd_icd10)
 # Combined
 dataset.cov_bin_chronic_kidney_disease = tmp_cov_bin_chronic_kidney_disease_snomed | tmp_cov_bin_chronic_kidney_disease_hes
 
-""" extract from the diabetes algo
-### Gestational diabetes
+## Gestational diabetes
 # Primary care
 tmp_cov_bin_gestationaldm_ctv3 = has_prior_event_ctv3(diabetes_gestational_ctv3_clinical)
 # HES APC
 tmp_cov_bin_gestationaldm_hes = has_prior_admission(gestationaldm_icd10)
 # Combined
 dataset.cov_bin_gestationaldm = tmp_cov_bin_gestationaldm_ctv3 | tmp_cov_bin_gestationaldm_hes
-"""
 
-### PCOS
+## PCOS
 # Primary care
 tmp_cov_bin_pcos_snomed = has_prior_event_snomed(pcos_snomed_clinical)
 # HES APC
@@ -825,17 +846,15 @@ tmp_cov_bin_pcos_hes = has_prior_admission(pcos_icd10)
 # Combined
 dataset.cov_bin_pcos = tmp_cov_bin_pcos_snomed | tmp_cov_bin_pcos_hes
 
-""" extract from the diabetes algo
-### Type 1 Diabetes
+## Type 1 Diabetes
 # Primary care
 tmp_cov_bin_t1dm_ctv3 = has_prior_event_ctv3(diabetes_type1_ctv3_clinical)
 # HES APC
 tmp_cov_bin_t1dm_hes = has_prior_admission(diabetes_type1_icd10)
 # Combined
 dataset.cov_bin_t1dm = tmp_cov_bin_t1dm_ctv3 | tmp_cov_bin_t1dm_hes
-"""
 
-### Diabetes complications (foot, retino, neuro, nephro)
+## Diabetes complications (foot, retino, neuro, nephro)
 # Primary care
 tmp_cov_bin_diabetescomp_snomed = has_prior_event_snomed(diabetescomp_snomed_clinical)
 # HES APC
