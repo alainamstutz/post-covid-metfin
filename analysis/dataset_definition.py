@@ -105,7 +105,7 @@ tmp_covid19_hes_date = (
 )
 """
 
-### Define (first) baseline date within recruitment period (within each sub-cohort)
+### Define (first) baseline date within recruitment period
 baseline_date = minimum_of(tmp_covid19_primary_care_date, tmp_covid19_sgss_date)
 
 #######################################################################################
@@ -290,7 +290,7 @@ def cause_of_death_matches(codelist):
 # INITIALISE the dataset and set the dummy dataset size
 #######################################################################################
 dataset = create_dataset()
-dataset.configure_dummy_data(population_size=100)
+dataset.configure_dummy_data(population_size=5000)
 dataset.baseline_date = baseline_date
 dataset.define_population(patients.exists_for_patient())
 
@@ -300,9 +300,9 @@ dataset.define_population(patients.exists_for_patient())
 #######################################################################################
 
 # population variables for dataset definition 
-dataset.qa_bin_is_female_or_male = patients.sex.is_in(["female", "male"]) # only include f, m and no missing values
-dataset.qa_bin_was_adult = (patients.age_on(baseline_date) >= 18) & (patients.age_on(baseline_date) <= 110) # only include adults (18-110) and no missing values
-dataset.qa_bin_was_alive = (patients.date_of_death.is_after(baseline_date) | patients.date_of_death.is_null()) # only include if alive 
+dataset.qa_bin_is_female_or_male = patients.sex.is_in(["female", "male"]) 
+dataset.qa_bin_was_adult = (patients.age_on(baseline_date) >= 18) & (patients.age_on(baseline_date) <= 110) 
+dataset.qa_bin_was_alive = (patients.date_of_death.is_after(baseline_date) | patients.date_of_death.is_null()) 
 dataset.qa_bin_known_imd = addresses.for_patient_on(baseline_date).exists_for_patient() # known deprivation
 dataset.qa_bin_was_registered = practice_registrations.spanning(baseline_date - days(366), baseline_date).exists_for_patient() # only include if registered on baseline date spanning back 1 year. Calculated from 1 year = 365.25 days, taking into account leap years.
 
@@ -491,7 +491,7 @@ dataset.cov_date_poccdm = cov_date_poccdm
 dataset.tmp_cov_count_poccdm_ctv3 = prior_events_count_ctv3(diabetes_diagnostic_ctv3_clinical) # changed name to ctv3
 
 ### Other variables needed to define diabetes
-# Maximum HbA1c measure (in period before baseline_date) // or only back 2 years (then use function)
+# Maximum HbA1c measure (in period before baseline_date)
 tmp_cov_num_max_hba1c_mmol_mol = (
     clinical_events.where(
         clinical_events.ctv3_code.is_in(hba1c_new_codes))
@@ -942,6 +942,13 @@ dataset.exp_count_metfin = (
         medications.dmd_code.is_in(metformin_codes))
         .where(medications.date.is_on_or_after(baseline_date))
         .count_for_patient()
+)
+
+dataset.exp_bin_7d_metfin = (
+    medications.where(
+        medications.dmd_code.is_in(metformin_codes))
+        .where(medications.date.is_on_or_between(baseline_date, baseline_date + days(7)))
+        .exists_for_patient()
 )
 
 #######################################################################################

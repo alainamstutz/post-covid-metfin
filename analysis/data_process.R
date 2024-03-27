@@ -169,11 +169,11 @@ data_processed <- df1 %>%
 
     # binary variable for the exposure
     # helpful for various downstream matching / plotting / table functions
-    # treatment = case_when(
-    #   boost_type=="pfizerBA45" ~ 0L,
-    #   boost_type=="sanofi" ~ 1L,
-    #   TRUE ~ NA_integer_
-    # ),
+    treatment = case_when(
+      exp_bin_7d_metfin == TRUE ~ 1L,
+      exp_bin_7d_metfin == FALSE ~ 0L,
+      TRUE ~ NA_integer_
+    ),
 
     # boost date represented as an integer, using for matching instead of date-formatted variable to avoid issues
     # boost_day = as.integer(boost_date - study_dates$studystart_date),
