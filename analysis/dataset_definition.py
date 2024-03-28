@@ -62,8 +62,8 @@ study_dates = json.loads(
 # Change these in ./lib/design/study-dates.R if necessary
 studystart_date = study_dates["studystart_date"]
 studyend_date = study_dates["studyend_date"]
-followupend_date = study_dates["followupend_date"]
-vaccine_peak_date = study_dates["vaccine_peak_date"]
+#followupend_date = study_dates["followupend_date"]
+#vaccine_peak_date = study_dates["vaccine_peak_date"]
 # add sub-cohort dates, to replace studystart_date & studyend_date for each sub-cohort?
 
 #######################################################################################
@@ -84,6 +84,11 @@ tmp_covid19_primary_care_date = (
     .first_for_patient()
     .date
 )
+tmp_covid19_primary_care_events = (
+    primary_care_covid_events.where(clinical_events.date.is_on_or_between(studystart_date,studyend_date))
+    .exists_for_patient()
+)
+
 ## First positive SARS-COV-2 PCR in recruitment period
 tmp_covid19_sgss_date = (
     sgss_covid_all_tests.where(
@@ -92,6 +97,13 @@ tmp_covid19_sgss_date = (
         .sort_by(sgss_covid_all_tests.lab_report_date)
         .first_for_patient()
         .lab_report_date
+)
+
+tmp_covid19_sgss_events = (
+    sgss_covid_all_tests.where(
+        sgss_covid_all_tests.is_positive.is_not_null()) # double-check with https://docs.opensafely.org/ehrql/reference/schemas/beta.tpp/#sgss_covid_all_tests
+        .where(sgss_covid_all_tests.lab_report_date.is_on_or_between(studystart_date,studyend_date))
+        .exists_for_patient()
 )
 
 """
@@ -287,13 +299,14 @@ def cause_of_death_matches(codelist):
 
 
 #######################################################################################
-# INITIALISE the dataset and set the dummy dataset size
+# INITIALISE the dataset, define the baseline date and event, and set the dummy dataset size
 #######################################################################################
 dataset = create_dataset()
 dataset.configure_dummy_data(population_size=5000)
 dataset.baseline_date = baseline_date
 dataset.define_population(patients.exists_for_patient())
 
+dataset.cov_bin_pos_covid = tmp_covid19_primary_care_events | tmp_covid19_sgss_events
 
 #######################################################################################
 # QUALITY ASSURANCES and completeness criteria
@@ -369,8 +382,8 @@ dataset.cov_cat_sex = patients.sex
 ## age
 dataset.cov_num_age = patients.age_on(baseline_date)
 
-### Age on 1 January 2020, for eligiblity definition 
-dataset.age_jan2020 = patients.age_on("2020-01-01")
+### Age on 1 January 2020
+#dataset.age_jan2020 = patients.age_on("2020-01-01")
 
 ## ethnicity in 6 categories based on codelists/opensafely-ethnicity.csv only. https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/codelists.py  
 dataset.cov_cat_ethnicity = (
@@ -415,6 +428,8 @@ dataset.cov_cat_region = (
 ## Rurality
 dataset.cov_cat_rural_urban = addresses.for_patient_on(baseline_date).rural_urban_classification
 
+## Practice registration
+dataset.cov_cat_stp = practice_registrations.for_patient_on(baseline_date).practice_stp
 
 #######################################################################################
 # ELIGIBILITY variables
@@ -483,8 +498,8 @@ dataset.cov_date_gestationaldm = cov_date_gestationaldm
 ### Diabetes diagnostic codes
 # Date of latest recording
 # Primary care
-cov_date_poccdm = prior_event_date_ctv3(diabetes_diagnostic_ctv3_clinical)
-dataset.cov_date_poccdm = cov_date_poccdm
+tmp_cov_date_poccdm = prior_event_date_ctv3(diabetes_diagnostic_ctv3_clinical)
+dataset.tmp_cov_date_poccdm = tmp_cov_date_poccdm
 
 # Count of number of records
 # Primary care
@@ -499,8 +514,9 @@ tmp_cov_num_max_hba1c_mmol_mol = (
         .numeric_value.maximum_for_patient()
 )
 dataset.tmp_cov_num_max_hba1c_mmol_mol = tmp_cov_num_max_hba1c_mmol_mol
+
 # Date of latest maximum HbA1c measure
-dataset.tmp_cov_num_max_hba1c_date = (
+dataset.tmp_cov_date_max_hba1c = ( 
     clinical_events.where(
         clinical_events.ctv3_code.is_in(hba1c_new_codes))
         .where(clinical_events.date.is_on_or_before(baseline_date)) # this line of code probably not needed again
@@ -529,7 +545,7 @@ dataset.tmp_cov_date_latest_diabetes_diag = maximum_of( # changed name to latest
          cov_date_t1dm,
          cov_date_otherdm,
          cov_date_gestationaldm,
-         cov_date_poccdm,
+         tmp_cov_date_poccdm,
          tmp_cov_date_diabetes_medication,
          tmp_cov_date_nonmetform_drugs_snomed
 )
@@ -641,7 +657,7 @@ tmp_most_recent_smoking_code = (
         .ctv3_code
 )
 tmp_most_recent_smoking_cat = tmp_most_recent_smoking_code.to_category(smoking_clear)
-dataset.tmp_most_recent_smoking_cat = tmp_most_recent_smoking_cat
+#dataset.tmp_most_recent_smoking_cat = tmp_most_recent_smoking_cat
 
 ever_smoked = (
     clinical_events.where(
@@ -649,7 +665,7 @@ ever_smoked = (
         .where(clinical_events.date.is_on_or_before(baseline_date)) 
         .exists_for_patient()
 )
-dataset.ever_smoked = ever_smoked
+#dataset.ever_smoked = ever_smoked
 
 cov_cat_smoking_status = case(
     when(tmp_most_recent_smoking_cat == "S").then("S"),
@@ -877,6 +893,14 @@ dataset.cov_count_covid_vaccines = (
   .where(vaccinations.date.is_on_or_before(baseline_date))
   .count_for_patient()
 )
+dataset.cov_date_recent_covid_vaccines = (
+  vaccinations
+  .where(vaccinations.target_disease.is_in(["SARS-2 CORONAVIRUS"]))
+  .where(vaccinations.date.is_on_or_before(baseline_date))
+  .sort_by(vaccinations.date)
+  .last_for_patient()
+  .date
+)
 
 
 
@@ -892,7 +916,7 @@ dataset.cov_cat_bmi_groups = case(
     when((cov_num_bmi >= 18.5) & (cov_num_bmi < 25.0)).then("Healthy weight (18.5-24.9)"),
     when((cov_num_bmi >= 25.0) & (cov_num_bmi < 30.0)).then("Overweight (25-29.9)"),
     when((cov_num_bmi >= 30.0) & (cov_num_bmi < 70.0)).then("Obese (>30)"),
-    default="missing", # assume missing is non-obese
+    default="missing", 
 )
 
 ## HbA1c, most recent value, within previous 2 years
@@ -1031,7 +1055,7 @@ dataset.out_date_viral_fatigue_first = (
 
 ## Death
 # all-cause death ## death table: I need to search in all cause of death or only underlying_cause_of_death ?
-dataset.death_date = ons_deaths.date
+# dataset.out_death_date = ons_deaths.date # already defines as QA
 
 # covid-related death (stated anywhere on any of the 15 death certificate options) # https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/codelists.py uses a different codelist: codelists/opensafely-covid-identification.csv
 tmp_out_bin_death_cause_covid = cause_of_death_matches(covid_codes_incl_clin_diag)

@@ -1,5 +1,5 @@
-diabetes_algo <- function(df){
-  df <- df %>%
+diabetes_algo <- function(data_extracted){
+  data_extracted <- data_extracted %>%
 
     # Step 1. Any gestational diabetes code?
     mutate(step_1 = ifelse(!is.na(cov_date_gestationaldm), "Yes", "No")) %>%
@@ -31,9 +31,9 @@ diabetes_algo <- function(df){
 
     # Step 5. Aged <35yrs (or <30 yrs for SAs and AFCS) at first diagnostic code? denominator for step 5: no to step 4
     mutate(step_5 = ifelse(step_4 == "No" &
-                             age_under_35_30_1st_diag == "Yes", "Yes", ### includes NA and many codes (incl. gestational DM, but excluded in Step 1): cov_date_t2dm, cov_date_t1dm, cov_date_otherdm, cov_date_gestationaldm, cov_date_poccdm, tmp_cov_date_diabetes_medication, tmp_cov_date_nonmetform_drugs_snomed
+                             tmp_age_under_35_30_1st_diag == "Yes", "Yes", ### includes NA and many codes (incl. gestational DM, but excluded in Step 1): cov_date_t2dm, cov_date_t1dm, cov_date_otherdm, cov_date_gestationaldm, tmp_cov_date_poccdm, tmp_cov_date_diabetes_medication, tmp_cov_date_nonmetform_drugs_snomed
                            ifelse(step_4 == "No" &
-                                    age_under_35_30_1st_diag == "No", "No", NA))) %>%
+                                    tmp_age_under_35_30_1st_diag == "No", "No", NA))) %>%
     mutate(step_5 = ifelse(step_5 == "No" |
                              is.na(step_5) & step_4 == "No", "No", "Yes")) %>% # => step_5 will never be NA
 
@@ -152,7 +152,5 @@ diabetes_algo <- function(df){
            # T1DM
            cov_date_t1dm = as_date(case_when(cov_cat_diabetes == "T1DM" ~ tmp_cov_date_latest_diabetes_diag)),
            # OTHER
-           cov_date_otherdm = as_date(case_when(cov_cat_diabetes == "DM_other" ~ pmin(hba1c_date_step7, over5_pocc_step7, na.rm = TRUE))))
-
-  return(df)
+           cov_date_otherdm = as_date(case_when(cov_cat_diabetes == "DM_other" ~ pmin(tmp_hba1c_date_step7, tmp_over5_pocc_step7, na.rm = TRUE))))
 }
