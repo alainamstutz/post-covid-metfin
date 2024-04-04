@@ -13,18 +13,18 @@
 ################################################################################
 # 0.0 Import libraries + functions
 ################################################################################
-library('dplyr')
-library('lubridate')
-library('here')
+library('feather')
 library('readr')
+library('here')
+library('lubridate')
+library('dplyr')
+library('tidyr')
 library('purrr')
 ## Import custom user functions
 source(here::here("analysis", "data_import", "extract_data.R"))
 source(here::here("analysis", "data_import", "process_data.R"))
-
 source(here::here("analysis", "data_import", "calc_n_excluded.R"))
-source(here::here("analysis", "data_import", "calc_n_excluded_contraindicated.R"))
-source(here::here("analysis", "data_import", "functions", "add_contraindicated_indicator.R"))
+source(here::here("analysis", "data_import", "quality_assurance.R"))
 
 ################################################################################
 # 0.1 Create directories for output
@@ -44,8 +44,14 @@ study_dates <-
 # 1 Import data
 ################################################################################
 input_filename <- "dataset.arrow"
-data_extracted <-
-  extract_data(input_filename)
+data_extracted <- extract_data(input_filename)
+
+## dummy data issues?
+table(data_extracted$out_bin_death_cause_covid) # why are all the deaths only covid? Why no noncovid deaths?
+# data_extracted <- data_extracted %>%
+#   select(qa_date_of_death, out_bin_death_cause_covid) %>%
+#   View()
+table(data_extracted$out_date_dereg) # why are there no dereg dates available?
 
 # # change data if run using dummy data
 # if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
@@ -74,80 +80,103 @@ data_extracted <-
 # 2 Process data
 ################################################################################
 data_processed_g7 <- process_data(data_extracted, study_dates, treat_window_days = 6) # grace period 7 dataset only
-# data_processed_g7 <- data_processed_g7 %>%
-#   select(patient_id, baseline_date, period_week, period_month, period_2month, period_3month) %>%
+# data_processed_g7 %>% # why so many date of deaths before baseline dates and marked qa_bin_was_alive == TRUE? dummy data?
+#   select(patient_id, baseline_date, period_week, period_month, period_2month, period_3month, status_primary, fu_primary, qa_date_of_death, qa_bin_was_alive) %>%
 #   View()
-
 data_processed <-
   map(.x = list(6, 7, 8, 9), # add additional longer grace periods besides the # primary grace period 7 days (baseline_date + 6)
       .f = ~ process_data(data_extracted, study_dates, treat_window_days = .x))
 names(data_processed) <- c("grace7", "grace8", "grace9", "grace10")
 
-# change data if run using dummy data
-if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
-  data_processed <-
-    map(.x = data_processed,
-        .f = ~ .x %>% group_by(patient_id) %>%
-          mutate(period_month = runif(1, 0, 12) %>% ceiling(),
-                 period_2month = runif(1, 0, 6) %>% ceiling(),
-                 period_3month = runif(1, 0, 4) %>% ceiling(),
-                 period_week = runif(1, 0, 52) %>% ceiling(),
-                 covid_test_positive_date = sample(seq(ymd("20220210"), ymd("20230209"), by = 1), 1),
-                 tb_postest_vacc_cat = sample(c(">= 84 days or unknown", "< 7 days", "7-27 days", "28-83 days"), 1) %>%
-                   factor(levels = c(">= 84 days or unknown", "< 7 days", "7-27 days", "28-83 days"))) %>%
-          ungroup() %>%
-          mutate(ageband = if_else(is.na(ageband), "18-39", ageband %>% as.character()) %>%
-                   factor(levels = c("18-39", "40-59", "60-79", "80+"))))
-}
+# currently all deaths are covid-related (see above) and deregistration date not available -> modify dummy data?
+# unique(data_processed_g7$out_date_death_28)
+# unique(data_processed_g7$out_date_noncovid_death) # no noncovid deaths
+# unique(data_processed_g7$out_date_covid_death)
+
+
+
+# # change data if run using dummy data
+# if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
+#   data_processed <-
+#     map(.x = data_processed,
+#         .f = ~ .x %>% group_by(patient_id) %>%
+#           mutate(period_month = runif(1, 0, 12) %>% ceiling(),
+#                  period_2month = runif(1, 0, 6) %>% ceiling(),
+#                  period_3month = runif(1, 0, 4) %>% ceiling(),
+#                  period_week = runif(1, 0, 52) %>% ceiling(),
+#                  covid_test_positive_date = sample(seq(ymd("20220210"), ymd("20230209"), by = 1), 1),
+#                  tb_postest_vacc_cat = sample(c(">= 84 days or unknown", "< 7 days", "7-27 days", "28-83 days"), 1) %>%
+#                    factor(levels = c(">= 84 days or unknown", "< 7 days", "7-27 days", "28-83 days"))) %>%
+#           ungroup() %>%
+#           mutate(ageband = if_else(is.na(ageband), "18-39", ageband %>% as.character()) %>%
+#                    factor(levels = c("18-39", "40-59", "60-79", "80+"))))
+# }
 
 ################################################################################
-# 3 Apply additional eligibility and exclusion criteria
+# 3 Apply quality assurance criteria
 ################################################################################
-# calc n excluded
-n_excluded <- calc_n_excluded(data_processed$grace5)
-
+n_qa_excluded <- quality_assurance(data_processed$grace7)
 data_processed <-
   map(.x = data_processed,
       .f = ~ .x %>%
-        # Exclude patients treated with paxlovid and molnupiravir or sotrovimab on the
-        # same day
-        filter(treated_pax_mol_same_day  == 0 & treated_pax_sot_same_day  == 0) %>%
-        # Exclude patients hospitalised on day of positive test
-        filter(!(status_all %in% c("covid_hosp", "noncovid_hosp", "covid_death", "noncovid_death") &
-                   fu_all == 0)) %>%
-        # if treated with remidesivir --> exclude
-        filter(is.na(remdesivir_covid_therapeutics)))
+        filter(!is.na(qa_num_birth_year)) %>%
+        filter(is.na(qa_date_of_death) | (qa_num_birth_year <= year(qa_date_of_death))) %>%
+        filter(qa_num_birth_year >= 1793 & qa_num_birth_year <= year(Sys.Date())) %>%
+        filter((qa_date_of_death > as.Date("1900-01-01")) | (qa_date_of_death < Sys.Date()) | is.na(qa_date_of_death)) %>%
+        filter((cov_cat_sex == "Female" | is.na(cov_cat_sex)) | (cov_cat_sex == "Male" & (qa_bin_pregnancy == FALSE))) %>% # FALSE includes missing in a ehrQL logical
+        filter((cov_cat_sex == "Female" | is.na(cov_cat_sex)) | (cov_cat_sex == "Male" & (qa_bin_hrt == FALSE)) | (cov_cat_sex == "Male" & (qa_bin_cocp == FALSE))) %>%
+        filter((cov_cat_sex == "Male" | is.na(cov_cat_sex)) | (cov_cat_sex == "Female" & (qa_bin_prostate_cancer == FALSE)))
+  )
 
-# contraindications
-n_excluded_contraindicated <- calc_n_excluded_contraindicated(data_processed$grace5)
+################################################################################
+# 4 Apply eligibility criteria
+################################################################################
+n_excluded <- calc_n_excluded(data_processed$grace7)
 data_processed <-
   map(.x = data_processed,
-      .f = ~ .x %>% add_contraindicated_indicator())
-data_processed_excl_contraindicated  <-
-  map(.x = data_processed,
-      .f = ~ .x %>% filter(contraindicated == FALSE))
+      .f = ~ .x %>%
+        # completeness criteria
+        filter(qa_bin_was_alive == TRUE) %>%
+        filter(qa_bin_is_female_or_male == TRUE) %>%
+        filter(qa_bin_known_imd == TRUE) %>%
+        filter(!is.na(cov_cat_region)) %>%
+        filter(qa_bin_was_registered == TRUE) %>%
+        # inclusion criteria
+        filter(qa_bin_was_adult == TRUE) %>%
+        filter(cov_bin_t2dm == TRUE) %>%
+        filter(!is.na(baseline_date)) %>%
+        # exclusion criteria
+        filter(cov_bin_hosp_baseline == FALSE) %>% # FALSE includes missing in a ehrQL logical
+        filter(cov_bin_metfin_before_baseline == FALSE) %>%
+        filter(cov_bin_metfin_allergy == FALSE) %>%
+        filter(cov_bin_ckd_45 == FALSE) %>%
+        filter(cov_bin_liver_cirrhosis == FALSE) %>%
+        filter(cov_bin_metfin_interaction == FALSE) %>%
+        filter(cov_bin_long_covid == FALSE)
+  )
+
+# data_processed$grace7 %>% # why is date of death before baseline date and this person is marked qa_bin_was_alive == TRUE? dummy data?
+#   select(patient_id, baseline_date, period_week, period_month, period_2month, period_3month, status_primary, fu_primary, qa_date_of_death, qa_bin_was_alive) %>%
+#   View()
+
+# # contraindications
+# n_excluded_contraindicated <- calc_n_excluded_contraindicated(data_processed$grace7)
+# data_processed <-
+#   map(.x = data_processed,
+#       .f = ~ .x %>% add_contraindicated_indicator())
+# data_processed_excl_contraindicated  <-
+#   map(.x = data_processed,
+#       .f = ~ .x %>% filter(contraindicated == FALSE))
 
 ################################################################################
-# 4 Save data
+# 5 Save data and steps/numbers of excluded participants
 ################################################################################
-# data_processed are saved
 iwalk(.x = data_processed,
       .f = ~ write_rds(.x,
                        here::here("output", "data",
-                                  paste0(
-                                    "data_processed",
-                                    "_"[!.y == "grace5"],
-                                    .y[!.y == "grace5"],
-                                    ".rds"))))
-iwalk(.x = data_processed_excl_contraindicated,
-      .f = ~ write_rds(.x,
-                       here::here("output", "data",
-                                  paste0(
-                                    "data_processed_excl_contraindicated",
-                                    "_"[!.y == "grace5"],
-                                    .y[!.y == "grace5"],
-                                    ".rds"))))
+                                  paste0("data_processed", "_"[!.y == "grace7"],
+                                    .y[!.y == "grace7"], ".rds"))))
+write_rds(n_qa_excluded,
+          here::here("output", "data_properties", "n_qa_excluded.rds"))
 write_rds(n_excluded,
           here::here("output", "data_properties", "n_excluded.rds"))
-write_rds(n_excluded_contraindicated,
-          here::here("output", "data_properties", "n_excluded_contraindicated.rds"))

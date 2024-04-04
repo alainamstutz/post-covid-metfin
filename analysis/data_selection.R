@@ -1,7 +1,7 @@
 # # # # # # # # # # # # # # # # # # # # #
 # Purpose: import processed data and filter out people who are excluded from the main analysis
 # outputs:
-#  - inclusion/exclusions flowchart data (up to matching step)
+#  - inclusion/exclusions flowchart data
 # # # # # # # # # # # # # # # # # # # # #
 
 # Preliminaries ----
@@ -12,7 +12,6 @@ library('here')
 library('glue')
 library('gt')
 library('gtsummary')
-
 
 ## Import custom user functions from lib
 source(here("analysis", "functions", "utility.R"))

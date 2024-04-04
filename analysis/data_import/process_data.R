@@ -8,11 +8,10 @@
 
 # load libraries
 library(forcats)
-
 # load custom user functions
 source(here::here("lib", "functions", "fct_case_when.R"))
 source(here::here("analysis", "data_import", "functions", "diabetes_algorithm.R"))
-# source(here::here("analysis", "data_import", "functions", "define_status_and_fu_primary.R"))
+source(here::here("analysis", "data_import", "functions", "define_status_and_fu_primary.R"))
 # source(here::here("analysis", "data_import", "functions", "define_status_and_fu_all.R"))
 # source(here::here("analysis", "data_import", "functions", "add_kidney_vars_to_data.R"))
 # source(here::here("analysis", "data_import", "functions", "define_covid_hosp_admissions.R"))
@@ -32,9 +31,9 @@ process_data <- function(data_extracted, study_dates, treat_window_days = 6){ # 
         right = FALSE),
 
       cov_cat_sex = fct_case_when(
-        cov_cat_sex == "F" ~ "Female",
-        cov_cat_sex == "M" ~ "Male",
-        TRUE ~ NA_character_), # any other gender is excluded at a later stage by applying the QA
+        cov_cat_sex == "female" ~ "Female",
+        cov_cat_sex == "male" ~ "Male",
+        TRUE ~ NA_character_), # any other gender is again excluded at a later stage by applying the QA
 
       cov_cat_ethnicity = fct_case_when(
         cov_cat_ethnicity == "1" ~ "White",
@@ -103,7 +102,7 @@ process_data <- function(data_extracted, study_dates, treat_window_days = 6){ # 
     diabetes_algo() %>%
     mutate(
       ## Third, extract T2DM as a separate variable
-      cov_bin_t2dm = case_when(cov_cat_diabetes == "T2DM" ~ T, TRUE ~ F),
+      cov_bin_t2dm = case_when(cov_cat_diabetes == "T2DM" ~ TRUE, TRUE ~ FALSE),
 
 
       # TREATMENT ---- keep the structure as it is, may want to add more treatment strategies (other OADs) in future
@@ -138,11 +137,10 @@ process_data <- function(data_extracted, study_dates, treat_window_days = 6){ # 
                   TRUE ~ "Untreated") %>%
         factor(levels = c("Untreated", "Treated")),
       # compare against direct extractions from ehrQL
-      exp_treatment_ehrQL = case_when(
-        exp_bin_7d_metfin == TRUE ~ 1L,
-        exp_bin_7d_metfin == FALSE ~ 0L,
-        TRUE ~ NA_integer_),
-
+      # exp_treatment_ehrQL = case_when(
+      #   exp_bin_7d_metfin == TRUE ~ 1L,
+      #   exp_bin_7d_metfin == FALSE ~ 0L, # this will not work, since the logical from ehrQL cannot differentiate between FALSE and missing
+      #   TRUE ~ NA_integer_),
 
       # # Treatment strategy overall
       # treatment =
@@ -150,6 +148,12 @@ process_data <- function(data_extracted, study_dates, treat_window_days = 6){ # 
       #               c("Paxlovid", "Sotrovimab", "Molnupiravir") ~ "Treated",
       #             TRUE ~ "Untreated") %>%
       #   factor(levels = c("Untreated", "Treated")),
+
+      # Treatment date, any window
+      exp_any_treatment_date =
+        if_else(exp_any_treatment_cat == "Treated",
+                exp_date_first_metfin,
+                NA_Date_),
 
       # Treatment date, within window
       exp_treatment_date =
@@ -180,7 +184,7 @@ process_data <- function(data_extracted, study_dates, treat_window_days = 6){ # 
       cov_num_bmi = replace(cov_num_bmi, cov_num_bmi > 70 | cov_num_bmi < 12, NA),
       # Combine BMI variables to create one history of obesity variable
       cov_bin_obesity = fct_case_when(
-        cov_bin_obesity == T | cov_cat_bmi_groups == "Obese (>30)" ~ "Obese (>30)",
+        cov_bin_obesity == TRUE | cov_cat_bmi_groups == "Obese (>30)" ~ "Obese (>30)",
         TRUE ~ NA_character_),
 
       cov_cat_smoking_status = fct_case_when(
@@ -255,39 +259,50 @@ process_data <- function(data_extracted, study_dates, treat_window_days = 6){ # 
     #             values_fill = 0,
     #             values_fn = length) %>%
     # mutate(across(starts_with("tb_postest_vax_"), . %>% as.logical())) %>%
-    ## because makes logic better readable
+    # because makes logic better readable
     # rename(covid_death_date = died_ons_covid_any_date) %>%
-    ## add columns first admission in day 0-6, second admission etc. to be used
-    ## to define hospital admissions (hosp admissions for sotro treated are
-    ## different from the rest as sometimes their admission is just an admission
-    ## to get the sotro infusion)
+    # # add columns first admission in day 0-6, second admission etc. to be used
+    # # to define hospital admissions (hosp admissions for sotro treated are
+    # # different from the rest as sometimes their admission is just an admission
+    # # to get the sotro infusion)
     # summarise_covid_admissions() %>%
-    ## adds column covid_hosp_admission_date
+    # # adds column covid_hosp_admission_date
     # add_covid_hosp_admission_outcome() %>%
-    ## idem as explained above for all cause hospitalisation
+    # # idem as explained above for all cause hospitalisation
     # summarise_allcause_admissions() %>%
-    ## adds column allcause_hosp_admission_date
+    # # adds column allcause_hosp_admission_date
     # add_allcause_hosp_admission_outcome() %>%
-    ## add column allcause_hosp_diagnosis
+    # # add column allcause_hosp_diagnosis
     # add_allcause_hosp_diagnosis() %>%
+
     mutate(
       # Outcome prep --> outcomes are added in add_*_outcome() functions below
-      study_window = baseline_date + days(28),
       # make distinction between noncovid death and covid death, since noncovid
       # death is a censoring event and covid death is an outcome
-      out_date_noncovid_death =
-        case_when(!is.na(qa_date_of_death) & out_bin_death_cause_covid == F ~ qa_date_of_death,
-                  TRUE ~ NA_Date_),
-      out_date_covid_death =
-        case_when(!is.na(qa_date_of_death) & out_bin_death_cause_covid == T ~ qa_date_of_death,
-                  TRUE ~ NA_Date_),
-      ## make distinction between noncovid hosp admission and covid hosp
-      ## admission, non covid hosp admission is not used as a censoring event in
-      ## our study, but we'd like to report how many pt were admitted to the
-      ## hospital for a noncovid-y reason before one of the other events
-      ## of note, patients can have allcause (non covid!) hosp before covid hosp,
-      ## so the number of noncovid_hosp + covid_hosp is not strictly the number
-      ## of allcause_hosp
+      study_window = baseline_date + days(28),
+      out_date_dereg_28 = case_when(!is.na(out_date_dereg) & (out_date_dereg < study_window) ~ out_date_dereg,
+                             TRUE ~ NA_Date_),
+      out_date_covid_hosp_28 = case_when(!is.na(out_date_covid_hosp) & (out_date_covid_hosp < study_window) ~ out_date_covid_hosp,
+                                    TRUE ~ NA_Date_),
+      out_date_death_28 = case_when(!is.na(qa_date_of_death) & (qa_date_of_death < study_window) ~ qa_date_of_death,
+                                    TRUE ~ NA_Date_),
+      out_date_covid_death_28 = case_when(!is.na(qa_date_of_death) & out_bin_death_cause_covid == TRUE & (qa_date_of_death < study_window) ~ qa_date_of_death,
+                                    TRUE ~ NA_Date_),
+      out_date_noncovid_death_28 = case_when(!is.na(qa_date_of_death) & out_bin_death_cause_covid == FALSE & (qa_date_of_death < study_window) ~ qa_date_of_death,
+                                    TRUE ~ NA_Date_),
+      # irrespective of window
+      out_date_covid_death = case_when(!is.na(qa_date_of_death) & out_bin_death_cause_covid == TRUE ~ qa_date_of_death,
+                                       TRUE ~ NA_Date_),
+      out_date_noncovid_death = case_when(!is.na(qa_date_of_death) & out_bin_death_cause_covid == FALSE ~ qa_date_of_death, # FALSE in a _bin_ (ehrQL logical) includes missing! => !is.na(qa_date_of_death) is needed
+                                          TRUE ~ NA_Date_),
+
+      # make distinction between noncovid hosp admission and covid hosp
+      # admission, non covid hosp admission is not used as a censoring event in
+      # our study, but we'd like to report how many pt were admitted to the
+      # hospital for a noncovid-y reason before one of the other events
+      # of note, patients can have allcause (non covid!) hosp before covid hosp,
+      # so the number of noncovid_hosp + covid_hosp is not strictly the number
+      # of allcause_hosp
       # noncovid_hosp_admission_date =
       #   case_when(!is.na(allcause_hosp_admission_date) &
       #               is.na(covid_hosp_admission_date) ~
@@ -301,37 +316,51 @@ process_data <- function(data_extracted, study_dates, treat_window_days = 6){ # 
       #             # all cause only includes first admissions so noncovid + covid
       #             # can exceed number of all cause admissions.
       #             TRUE ~ NA_Date_),
+
     ) %>%
-    ## adds column status_all and fu_all
+    # adds column status_all and fu_all
     # add_status_and_fu_all() %>%
-    ## adds column status_primary and fu_primary
-    # add_status_and_fu_primary() %>%
+
+    # adds column status_primary and fu_primary
+    add_status_and_fu_primary() %>%
+
     ## some patients experience one of our outcomes (prim outcome)
     ## on or before day of treatment --> if so, patients will be categorised as
     ## untreated
     ## for more info, see
     ## https://docs.google.com/document/d/1ZPLQ34C0SrXsIrBXy3j9iIlRCfnEEYbEUmgMBx6mv8U/edit#heading=h.sncyl4m0nk5s
-    # mutate(
-      ## PRIMARY ##
-      ## Treatment strategy categories
-      # treatment_strategy_cat_prim =
-      #   if_else(status_primary %in%
-      #             c("covid_hosp_death", "noncovid_death", "dereg") &
-      #             treatment == "Treated" &
-      #             min_date_primary <= treatment_date,
-      #           "Untreated",
-      #           treatment_strategy_cat %>% as.character()) %>%
-      #   factor(levels = c("Untreated", "Paxlovid", "Sotrovimab", "Molnupiravir")),
-      # # Treatment strategy overall
-      # treatment_prim =
-      #   if_else(treatment_strategy_cat_prim == "Untreated",
-      #           "Untreated",
-      #           "Treated") %>%
-      #   factor(levels = c("Untreated", "Treated")),
-      # # Treatment date
-      # treatment_date_prim =
-      #   if_else(treatment_prim == "Treated", treatment_date, NA_Date_),
-    # ) %>%
+    mutate(
+    # PRIMARY ##
+      # Treatment strategy overall
+    treatment_prim =
+      if_else(status_primary %in%
+                c("covid_hosp_death", "noncovid_death", "dereg") &
+                exp_treatment == "Treated" & min_date_primary <= exp_treatment_date,
+              "Untreated", "Treated") %>%
+      factor(levels = c("Untreated", "Treated")),
+    # Treatment date
+    treatment_date_prim =
+      if_else(treatment_prim == "Treated", exp_treatment_date, NA_Date_),
+
+    # treatment_strategy_cat_prim =
+    #   if_else(status_primary %in%
+    #             c("covid_hosp_death", "noncovid_death", "dereg") &
+    #             treatment == "Treated" &
+    #             min_date_primary <= treatment_date,
+    #           "Untreated",
+    #           treatment_strategy_cat %>% as.character()) %>%
+    #   factor(levels = c("Untreated", "Paxlovid", "Sotrovimab", "Molnupiravir")),
+    # # Treatment strategy overall
+    # treatment_prim =
+    #   if_else(treatment_strategy_cat_prim == "Untreated",
+    #           "Untreated",
+    #           "Treated") %>%
+    #   factor(levels = c("Untreated", "Treated")),
+    # # Treatment date
+    # treatment_date_prim =
+    #   if_else(treatment_prim == "Treated", treatment_date, NA_Date_),
+
+    ) %>%
     add_period_cuts(study_dates = study_dates) %>%
   # drop unnecessary helper variables during the data processing (esp. above during diabetes algo)
     select(-contains("tmp"), -contains("step"))

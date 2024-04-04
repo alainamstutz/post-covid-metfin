@@ -3,7 +3,7 @@
 # Based on and Credits to https://github.com/opensafely/post-covid-diabetes/tree/main
 ################################################################################
 extract_data <- function(input_filename) {
-  data_extract <- read_feather(here::here("output", input_filename))
+  data_extract <- arrow::read_feather(here::here("output", input_filename))
 
   data_extract <- data_extract %>%
     mutate(across(c(contains("_date")),

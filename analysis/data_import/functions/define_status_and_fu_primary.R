@@ -24,34 +24,27 @@ add_status_and_fu_primary <- function(data){
       # "covid_hosp": covid hospitalisation
       # "covid_death": covid death
       # "noncovid_death": non-covid death
-      min_date_primary = pmin(dereg_date,
-                              death_date,
-                              covid_hosp_admission_date,
+      min_date_primary = pmin(out_date_dereg_28,
+                              out_date_death_28,
+                              out_date_covid_death_28,
+                              out_date_noncovid_death_28,
                               study_window,
                               na.rm = TRUE),
       status_primary = case_when(
-        # pt should not have both noncovid and covid death, coded here to 
+        # pt should not have both noncovid and covid death, coded here to
         # circumvent mistakes if database errors exist
-        min_date_primary == covid_death_date ~ "covid_death",
-        min_date_primary == noncovid_death_date ~ "noncovid_death",
-        min_date_primary == covid_hosp_admission_date ~ "covid_hosp",
-        min_date_primary == dereg_date ~ "dereg",
+        min_date_primary == out_date_covid_death_28 ~ "covid_death",
+        min_date_primary == out_date_noncovid_death_28 ~ "noncovid_death",
+        min_date_primary == out_date_covid_hosp_28 ~ "covid_hosp",
+        min_date_primary == out_date_dereg_28 ~ "dereg",
         TRUE ~ "none"
       ),
       # FOLLOW UP STATUS 'PRIMARY' ----
       fu_primary = difftime(min_date_primary,
-                            covid_test_positive_date,
+                            baseline_date,
                             units = "days") %>% as.numeric(),
       # combine covid death and hospitalisation
-      status_primary = if_else(
-        status_primary == "covid_hosp" | 
-          status_primary == "covid_death",
-        "covid_hosp_death",
-        status_primary
-      ) %>% factor(levels = 
-                     c("covid_hosp_death", 
-                       "noncovid_death",
-                       "dereg",
-                       "none"))
+      status_primary = if_else(status_primary == "covid_hosp" | status_primary == "covid_death", "covid_hosp_death", status_primary) %>%
+        factor(levels = c("covid_hosp_death", "noncovid_death", "dereg", "none"))
     )
 }
