@@ -26,7 +26,7 @@ d) Apply the eligibility criteria, function *calc_n_excluded*
 
 2. select_and_simplify_data
 
-a) Reduce/simplify to most important variables, function *\texttt{*simplify_data*:
+a) Reduce/simplify to most important variables, function *simplify_data*:
 
 * status_seq: outcome reached (or max fup)
 
