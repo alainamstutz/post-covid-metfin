@@ -13,18 +13,18 @@ The content has ONLY been made public to support the OpenSAFELY [open science an
 No clinical, policy or safety conclusions must be drawn from the contents of this repository.
 
 # Data flow
-1. data_process
+1. Script data_process.R
 
-a) Import/Extract feather dataset from OpenSAFELY, function *extract_data*
+* Import/Extract feather dataset from OpenSAFELY, function *extract_data*
 
-b) Process data, function *process_data*, incl. introducing the grace period, the period cuts, treatment and outcome (=status) variables
+* Process data, function *process_data*, incl. introducing the grace period, the period cuts, treatment and outcome (=status) variables
 
-c) Apply the quality assurance criteria, function *quality_assurance*
+* Apply the quality assurance criteria, function *quality_assurance*
 
-d) Apply the eligibility criteria, function *calc_n_excluded*
+* Apply the eligibility criteria, function *calc_n_excluded*
 
 
-2. select_and_simplify_data
+2. Script select_and_simplify_data.R
 
 a) Reduce/simplify to most important variables, function *simplify_data*:
 
@@ -37,13 +37,13 @@ a) Reduce/simplify to most important variables, function *simplify_data*:
 * fup_seq: time until outcome within max fup time
 
 
-3. prepare_data
+3. Script prepare_data.R
 
-a) Split the data into regular interval within follow-up (tstart - tend intervals), function *split_data*, for each individual
+* Split the data into regular interval within follow-up (tstart - tend intervals), function *split_data*, for each individual
 
-b) Add treatment lag variable, function *add_trt_lags*
+* Add treatment lag variable, function *add_trt_lags*
 
-c) Construct trials, using function *construct_trials* and function *construct_trial_no*, according to grace period
+* Construct trials, using function *construct_trials* and function *construct_trial_no*, according to grace period
 
 
 
