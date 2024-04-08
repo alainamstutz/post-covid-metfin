@@ -130,7 +130,7 @@ tic()
 cluster <- parallel::makeForkCluster(cores = 4) #  set up a fork-based parallel processing environment with four cores in R, allowing for parallel execution of code to speed up computations
 registerDoParallel(cluster)
 
-trials <- # create 7 trials per participants (0-6), according to grace period 7, keeping them in their respective period (see below)
+trials <- # create 7 trials per participants (0-6), according to grace period 7, keeping them in their respective period (see below), according to cuts.
   foreach(i = cuts, .combine = rbind, .packages = "magrittr") %dopar% { # Initiates a loop over the elements of cuts, with i as the loop variable and the results from each iteration will be stacked vertically (by rows). "package" is important because the %>% pipe operator from magrittr is used within the loop.
     construct_trials(
       data = data_splitted,
@@ -145,11 +145,12 @@ toc()
 # "keeping them in their respective period"
 table(data$period) # 6 participants, across 4 periods during study duration (period 19, 21, 24, 27)
 table(data_splitted$period) # 6x28 participant-days (28 daily follow-up), across 4 periods during study duration (period 19, 21, 24, 27)
-table(trials$period) # period 19 person is the only one who has any treatment in follow-up (data$tb_postest_treat_seq), all others NA and thus no trial built for those:
-# function construct_trial_no: treatment_seq_lag1_baseline == 0, #restrict to those not previously treated at the start of the trial
-# Period 19 person: Trial 0 (28 days) + Trial 1 (27 days) + Trial 2 (26 days) + Trial 3 (25 days) + Trial 4 (24 days) + Trial 5 (23 days) + Trial 6 (22 days) => 175 rows
+table(trials$period)
+# Period 19/21/24 person: Trial 0 (28 days) + Trial 1 (27 days) + Trial 2 (26 days) + Trial 3 (25 days) + Trial 4 (24 days) + Trial 5 (23 days) + Trial 6 (22 days) => 175 rows
+# Period 27 people (3x): 3x175
 
-# check %dopar% / check lag variables / why NA-trials not relevant? / why shorter follow-up for later trials? / next step?
+table(trials$trial) # why shorter follow-up for later trials?
+# check lag variables / next step?
 
 # print("Construct trials 3")
 # tic()
@@ -164,6 +165,7 @@ table(trials$period) # period 19 person is the only one who has any treatment in
 #         construct_trial_no = construct_trial_no)
 #     )
 # toc()
+
 trials %<>%
   mutate(arm = factor(arm, levels = c(0, 1)),
          trial = factor(trial, levels = 0:6), # grace period 7 days, i.e. 7 trials, i.e. 0-6

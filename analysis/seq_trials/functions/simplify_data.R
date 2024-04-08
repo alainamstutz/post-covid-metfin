@@ -17,8 +17,8 @@ simplify_data <- function(data){
     data %>%
     mutate(
       status_seq = if_else(status_primary %in% c("covid_hosp_death"), 1L, 0L),
-      treatment_seq = if_else(exp_treatment == "Treated", 1L, 0L),
-      tb_postest_treat_seq = as.integer(exp_num_tb_postest_treat),
+      treatment_seq = if_else(exp_treatment == "Treated", 1L, 0L), ### treatment_strategy_cat and tb_postest_treat_seq (and therefore exp_num_tb_postest_treat) based on treated WITHIN grace period (not any, i.e. after)
+      tb_postest_treat_seq = if_else(exp_treatment == "Treated", as.integer(exp_num_tb_postest_treat), 6L), # corresponds to line 28 below!
       # # some people have been treated on or after they experience an event,
       # # variable 'exp_treatment' should then be 'Untreated' (see process_data.R), if so, # to be considered!
       # # set tb_postest_treat (day of fup on which they've been treated) to 5
