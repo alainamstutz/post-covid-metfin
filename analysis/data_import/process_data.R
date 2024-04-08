@@ -329,18 +329,16 @@ process_data <- function(data_extracted, study_dates, treat_window_days = 6){ # 
     ## untreated
     ## for more info, see
     ## https://docs.google.com/document/d/1ZPLQ34C0SrXsIrBXy3j9iIlRCfnEEYbEUmgMBx6mv8U/edit#heading=h.sncyl4m0nk5s
-    mutate(
-    # PRIMARY ##
-      # Treatment strategy overall
-    treatment_prim =
-      if_else(status_primary %in%
-                c("covid_hosp_death", "noncovid_death", "dereg") &
-                exp_treatment == "Treated" & min_date_primary <= exp_treatment_date,
-              "Untreated", "Treated") %>%
-      factor(levels = c("Untreated", "Treated")),
-    # Treatment date
-    treatment_date_prim =
-      if_else(treatment_prim == "Treated", exp_treatment_date, NA_Date_),
+    # mutate(
+    # # PRIMARY ##
+    #   # Treatment strategy overall
+    # treatment_prim =
+    #   if_else(status_primary %in% c("covid_hosp_death", "noncovid_death", "dereg") &
+    #             exp_treatment == "Treated" & min_date_primary <= exp_treatment_date, "Untreated", "Treated") %>%
+    #   factor(levels = c("Untreated", "Treated")),
+    # # Treatment date
+    # treatment_date_prim =
+    #   if_else(treatment_prim == "Treated", exp_treatment_date, NA_Date_),
 
     # treatment_strategy_cat_prim =
     #   if_else(status_primary %in%
@@ -360,7 +358,8 @@ process_data <- function(data_extracted, study_dates, treat_window_days = 6){ # 
     # treatment_date_prim =
     #   if_else(treatment_prim == "Treated", treatment_date, NA_Date_),
 
-    ) %>%
+    # ) %>%
+
     add_period_cuts(study_dates = study_dates) %>%
   # drop unnecessary helper variables during the data processing (esp. above during diabetes algo)
     select(-contains("tmp"), -contains("step"))

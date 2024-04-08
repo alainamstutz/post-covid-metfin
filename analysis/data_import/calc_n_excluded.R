@@ -9,7 +9,7 @@ calc_n_excluded <- function(data_processed){
   # completeness criteria
   n_is_alive <-
     data_processed %>%
-    filter(qa_bin_was_alive == TRUE) %>%
+    filter(qa_bin_was_alive == TRUE & (qa_date_of_death > baseline_date | is.na(qa_date_of_death))) %>% # additional condition since "qa_bin_was_alive == TRUE" may not cover all (e.g. pos test came out after death)
     nrow()
   n_is_female_or_male <-
     data_processed %>%

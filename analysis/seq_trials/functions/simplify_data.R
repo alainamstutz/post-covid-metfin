@@ -17,10 +17,10 @@ simplify_data <- function(data){
     data %>%
     mutate(
       status_seq = if_else(status_primary %in% c("covid_hosp_death"), 1L, 0L),
-      treatment_seq = if_else(treatment_prim == "Treated", 1L, 0L),
+      treatment_seq = if_else(exp_treatment == "Treated", 1L, 0L),
       tb_postest_treat_seq = as.integer(exp_num_tb_postest_treat),
       # # some people have been treated on or after they experience an event,
-      # # variable 'treatment_prim' is then 'Untreated' (see process_data.R), if so,
+      # # variable 'exp_treatment' should then be 'Untreated' (see process_data.R), if so, # to be considered!
       # # set tb_postest_treat (day of fup on which they've been treated) to 5
       # tb_postest_treat_seq = if_else(
       #   treatment_strategy_cat_prim == "Paxlovid",

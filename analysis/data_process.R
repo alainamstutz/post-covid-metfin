@@ -47,11 +47,10 @@ input_filename <- "dataset.arrow"
 data_extracted <- extract_data(input_filename)
 
 ## dummy data issues?
-table(data_extracted$out_bin_death_cause_covid) # why are all the deaths only covid? Why no noncovid deaths?
-# data_extracted <- data_extracted %>%
+# data_extracted <- data_extracted %>% # why are all the deaths only covid? Why no noncovid deaths?
 #   select(qa_date_of_death, out_bin_death_cause_covid) %>%
 #   View()
-table(data_extracted$out_date_dereg) # why are there no dereg dates available?
+# table(data_extracted$out_date_dereg) # why are there no dereg dates available?
 
 # # change data if run using dummy data
 # if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
@@ -80,9 +79,7 @@ table(data_extracted$out_date_dereg) # why are there no dereg dates available?
 # 2 Process data
 ################################################################################
 data_processed_g7 <- process_data(data_extracted, study_dates, treat_window_days = 6) # grace period 7 dataset only
-# data_processed_g7 %>% # why so many date of deaths before baseline dates and marked qa_bin_was_alive == TRUE? dummy data?
-#   select(patient_id, baseline_date, period_week, period_month, period_2month, period_3month, status_primary, fu_primary, qa_date_of_death, qa_bin_was_alive) %>%
-#   View()
+
 data_processed <-
   map(.x = list(6, 7, 8, 9), # add additional longer grace periods besides the # primary grace period 7 days (baseline_date + 6)
       .f = ~ process_data(data_extracted, study_dates, treat_window_days = .x))
@@ -93,7 +90,9 @@ names(data_processed) <- c("grace7", "grace8", "grace9", "grace10")
 # unique(data_processed_g7$out_date_noncovid_death) # no noncovid deaths
 # unique(data_processed_g7$out_date_covid_death)
 
-
+# data_processed_g7 %>% # why so many date of deaths before baseline dates and marked qa_bin_was_alive == TRUE? dummy data?
+#   select(patient_id, baseline_date, period_week, period_month, period_2month, period_3month, status_primary, fu_primary, qa_date_of_death, qa_bin_was_alive) %>%
+#   View()
 
 # # change data if run using dummy data
 # if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){
@@ -136,7 +135,7 @@ data_processed <-
   map(.x = data_processed,
       .f = ~ .x %>%
         # completeness criteria
-        filter(qa_bin_was_alive == TRUE) %>%
+        filter(qa_bin_was_alive == TRUE & (qa_date_of_death > baseline_date | is.na(qa_date_of_death))) %>% # additional condition since "qa_bin_was_alive == TRUE" may not cover all (e.g. pos test came out after death)
         filter(qa_bin_is_female_or_male == TRUE) %>%
         filter(qa_bin_known_imd == TRUE) %>%
         filter(!is.na(cov_cat_region)) %>%
@@ -155,7 +154,9 @@ data_processed <-
         filter(cov_bin_long_covid == FALSE)
   )
 
-# data_processed$grace7 %>% # why is date of death before baseline date and this person is marked qa_bin_was_alive == TRUE? dummy data?
+# why is date of death before baseline date and this person is marked qa_bin_was_alive == TRUE? dummy data?
+# why are some periods (at the end) NA? Double-check!
+# data_processed$grace7 %>%
 #   select(patient_id, baseline_date, period_week, period_month, period_2month, period_3month, status_primary, fu_primary, qa_date_of_death, qa_bin_was_alive) %>%
 #   View()
 
