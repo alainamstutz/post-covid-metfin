@@ -14,28 +14,38 @@ No clinical, policy or safety conclusions must be drawn from the contents of thi
 
 # Data flow
 1. data_process
-\begin{itemize}
-\item[(a)] Import/Extract feather dataset from OpenSAFELY, function \texttt{extract_data}
-\item[(b)] Process data, function \texttt{process_data}, incl. introducing the grace period, the period cuts, treatment and outcome (=status) variables
-\item[(c)] Apply the quality assurance criteria, function \texttt{quality_assurance}
-\item[(d)] Apply the eligibility criteria, function \texttt{calc_n_excluded}
-\end{itemize}
+
+a) Import/Extract feather dataset from OpenSAFELY, function *extract_data*
+
+b) Process data, function *process_data*, incl. introducing the grace period, the period cuts, treatment and outcome (=status) variables
+
+c) Apply the quality assurance criteria, function *quality_assurance*
+
+d) Apply the eligibility criteria, function *calc_n_excluded*
+
 
 2. select_and_simplify_data
-\begin{itemize}
-\item[(a)] Reduce/simplify to most important variables, function \texttt{simplify_data}:
-\item[(b)] status_seq: outcome reached (or max fup)
-\item[(c)] treatment_seq: treated within grace period
-\item[(d)] tb_postest_treat_seq: time between baseline and treatment (within grace period)
-\item[(e)] fup_seq: time until outcome within max fup time
-\end{itemize}
+
+a) Reduce/simplify to most important variables, function *\texttt{*simplify_data*:
+
+* status_seq: outcome reached (or max fup)
+
+* treatment_seq: treated within grace period
+
+* tb_postest_treat_seq: time between baseline and treatment (within grace period)
+
+* fup_seq: time until outcome within max fup time
+
 
 3. prepare_data
-\begin{itemize}
-\item[(a)] Split the data into regular interval within follow-up (tstart - tend intervals), function \texttt{split_data}, for each individual
-\item[(b)] Add treatment lag variable, function \texttt{add_trt_lags}
-\item[(c)] Construct trials, using function \texttt{construct_trials} and function \texttt{construct_trial_no}, according to grace period
-\end{itemize}
+
+a) Split the data into regular interval within follow-up (tstart - tend intervals), function *split_data*, for each individual
+
+b) Add treatment lag variable, function *add_trt_lags*
+
+c) Construct trials, using function *construct_trials* and function *construct_trial_no*, according to grace period
+
+
 
 # About the OpenSAFELY framework
 
