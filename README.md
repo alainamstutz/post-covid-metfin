@@ -28,22 +28,26 @@ No clinical, policy or safety conclusions must be drawn from the contents of thi
 
 a) Reduce/simplify to most important variables, function *simplify_data*:
 
-* status_seq: outcome reached (or max fup)
+* status_seq: outcome reached 
 
 * treatment_seq: treated within grace period
 
 * tb_postest_treat_seq: time between baseline and treatment (within grace period)
 
-* fup_seq: time until outcome within max fup time
+* fup_seq: time until outcome, or dereg, or max fup time (what if competing event? Or I want to censoring weights for dereg?)
 
 
-3. Script prepare_data.R
+3. Script prepare_data.R // use https://github.com/LindaNab/seqtrial/blob/main/vignettes/sequential-trial.Rmd instead!
 
 * Split the data into regular interval within follow-up (tstart - tend intervals), function *split_data*, for each individual
 
 * Add treatment lag variable, function *add_trt_lags*
 
 * Construct trials, using function *construct_trials* and function *construct_trial_no*, according to grace period
+
+
+
+4. Script describe_size_trials.R and all other descriptive and analyses scripts
 
 
 

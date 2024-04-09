@@ -150,7 +150,10 @@ table(trials$period)
 # Period 27 people (3x): 3x175
 
 table(trials$trial) # why shorter follow-up for later trials?
-# check lag variables / next step?
+# check lag variables
+# trials %>%
+#   select(patient_id, trial, tstart, tend, arm, status_seq, contains("treatment")) %>%
+#   View()
 
 # print("Construct trials 3")
 # tic()
