@@ -230,10 +230,8 @@ hdl_cholesterol_snomed = codelist_from_csv("codelists/bristol-hdl-cholesterol.cs
 # covid infection at hosp incl. clin diagnosis without PCR
 # covid_codes_incl_clin_diag = codelist_from_csv("codelists/opensafely-covid-identification.csv",column="icd10_code")
 
-# overwrite imported codelist to add additional "Multisystem inflammatory syndrome associated with COVID-19, unspecified" code
-# see "Note on coding of the coronavirus (COVID-19)" here: https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/methodologies/userguidetomortalitystatisticsjuly2017
-# based on https://github.com/opensafely/comparative-booster-spring2023/blob/main/analysis/codelists.py 
-covid_codes_incl_clin_diag = ["U071", "U072", "U109"]
+# overwrite imported codelist to add 2 additional codes, see blog post here: https://github.com/opensafely/documentation/discussions/1480 
+covid_codes_incl_clin_diag = ["U071", "U072", "U109", "U099"]
 
 # covid_emergency = codelist_from_csv(
 #     "codelists-opensafely-covid-19-ae-diagnosis-codes.csv",
