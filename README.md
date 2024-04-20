@@ -46,7 +46,6 @@ a) Reduce/simplify to most important variables, function *simplify_data*:
 * Construct trials, using function *construct_trials* and function *construct_trial_no*, according to grace period
 
 
-
 4. Script describe_size_trials.R and all other descriptive and analyses scripts
 
 
