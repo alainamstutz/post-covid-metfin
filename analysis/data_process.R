@@ -50,7 +50,7 @@ data_extracted <- extract_data(input_filename)
 # data_extracted <- data_extracted %>% # why are all the deaths only covid? Why no noncovid deaths?
 #   select(qa_date_of_death, out_bin_death_cause_covid) %>%
 #   View()
-# table(data_extracted$out_date_dereg) # why are there no dereg dates available?
+# table(data_extracted$cov_cat_region) # why are there no dereg dates available?
 
 # # change data if run using dummy data
 # if(Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")){

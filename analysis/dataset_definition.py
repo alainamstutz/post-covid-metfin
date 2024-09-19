@@ -306,7 +306,7 @@ def cause_of_death_matches(codelist):
 # INITIALISE the dataset, define the baseline date and event, and set the dummy dataset size
 #######################################################################################
 dataset = create_dataset()
-dataset.configure_dummy_data(population_size=5000)
+dataset.configure_dummy_data(population_size=100)
 dataset.baseline_date = baseline_date
 dataset.define_population(patients.exists_for_patient())
 
@@ -937,12 +937,12 @@ dataset.tmp_cov_num_hdl_cholesterol = recent_value_2y_snomed(hdl_cholesterol_sno
 
 
 ## Number of consultations in year prior to pandemic (2019)
-#dataset.cov_num_consultation_rate = (
-#    appointments.where(
-#        appointments.status.is_in(["Arrived", "In Progress", "Finished", "Visit", "Waiting", "Patient Walked Out",]))
-#        .where(appointments.seen_date.is_on_or_between(studystart_date - days(366),studystart_date)) # the year before the pandemic
-#        .count_for_patient()
-#)
+dataset.cov_num_consultation_rate = (
+    appointments.where(
+        appointments.status.is_in(["Arrived", "In Progress", "Finished", "Visit", "Waiting", "Patient Walked Out",]))
+        .where(appointments.seen_date.is_on_or_between(studystart_date - days(366),studystart_date)) # the year before the pandemic
+        .count_for_patient()
+)
 
 ## Healthcare worker at the time they received a COVID-19 vaccination
 dataset.cov_bin_healthcare_worker = (
