@@ -1,5 +1,7 @@
 # post-covid-metfin
 
+This is an old repo, superseded by this one: https://github.com/opensafely/metformin_covid !
+
 [View on OpenSAFELY](https://jobs.opensafely.org/repo/https%253A%252F%252Fgithub.com%252Fopensafely%252Fpost-covid-metfin)
 
 Recent evidence from a placebo-controlled randomised clinical trial (COVID-OUT: https://doi.org/10.1016/S1473-3099(23)00299-2) suggested that administering metformin during the acute stage of COVID-19 infection lowers the likelihood of developing Long COVID. Treatment with metformin reduced long COVID incidence by about 41%, with an absolute reduction of 4,1%, compared to placebo. This interesting finding warrants further investigation, and to guide treatment policy, effectiveness studies, especially from routine care data, are needed. 
